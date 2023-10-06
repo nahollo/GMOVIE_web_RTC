@@ -16,6 +16,17 @@ const handleListen = () => console.log('Listening on http://localhost:3000');
 const httpServer = http.createServer(app); // http 서버 작동
 const wsServer = SocketIO(httpServer); // socket IO 는 websocket의 부가기능이 아니다.
 
+function publicRooms(){
+    const {sockets:{adapter: {sids, rooms}}} = wsServer;
+    const publicRooms = [];
+    rooms.forEach((_,key)=>{
+        if(sids.get(key) === undefined){
+            publicRooms.push(key);
+        }
+    });
+    return publicRooms;
+}
+
 
 wsServer.on("connection", (socket) => {
     socket["nickname"] = "Anon";
