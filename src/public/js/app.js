@@ -60,4 +60,6 @@ socket.on("bye", (left) => {
 
 socket.on("new_message", addMessage);
 
+socket.on("room_change", console.log);
+
 form.addEventListener("submit", handleRoomSubmit);
