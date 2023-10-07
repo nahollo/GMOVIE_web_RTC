@@ -15,10 +15,12 @@ html(lang="en")
                     button 회의실 입장
             div#call
                 div#myStream
-                video#myFace(autoplay, playsinline, width = "400", height="400")
-                button#mute 마이크 음소거
-                button#camera 카메라 끄기
-                select#cameras
+                    video#myFace(autoplay, playsinline, width = "400", height="400")
+                    button#mute 마이크 음소거
+                    button#camera 카메라 끄기
+                    select#cameras
+                    video#peerFacs(autoplay, playsinline, width = "400", height="400")
+
 
             
     script(src="/socket.io/socket.io.js")
