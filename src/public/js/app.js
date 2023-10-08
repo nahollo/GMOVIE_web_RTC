@@ -20,19 +20,22 @@ async function getCameras() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameras = devices.filter(device => device.kind === "videoinput");
 
-        const currentCamera = myStream.getVideoTracks()[0];
+        // 현재 카메라를 확인하기 전에 myStream이 초기화되었는지 확인
+        if (myStream) {
+            const currentCamera = myStream.getVideoTracks()[0];
 
-        cameras.forEach((camera) => {
-            const option = document.createElement("option");
-            option.value = camera.deviceId;
-            option.innerText = camera.label;
-            if (currentCamera.label == camera.label) {
-                option.selected = true;
-            }
-            camerasSelect.appendChild(option);
-        })
+            cameras.forEach((camera) => {
+                const option = document.createElement("option");
+                option.value = camera.deviceId;
+                option.innerText = camera.label;
+                if (currentCamera.label == camera.label) {
+                    option.selected = true;
+                }
+                camerasSelect.appendChild(option);
+            });
+        }
     } catch (e) {
-        console.log(e)
+        console.log(e);
     }
 }
 
@@ -50,10 +53,9 @@ async function getMedia(deviceId) {
             deviceId ? cameraConstraints : initialConstrains
         );
         myFace.srcObject = myStream;
-        if (!deviceId) {
-            await getCameras();
-        }
 
+        // 카메라 선택 목록 업데이트
+        await getCameras();
     } catch (e) {
         console.log(e);
     }
@@ -62,32 +64,38 @@ async function getMedia(deviceId) {
 function handleMuteClick() {
     myStream.getAudioTracks().forEach((track) => (track.enabled = !track.enabled));
     if (!muted) {
-        muteBtn.innerText = "음소거 　풀기"
+        muteBtn.innerText = "마이크 O";
         muted = true;
     } else {
-        muteBtn.innerText = "마이크 음소거"
+        muteBtn.innerText = "마이크 X";
         muted = false;
     }
 }
+
 function handleCameraClick() {
     myStream.getVideoTracks().forEach((track) => (track.enabled = !track.enabled));
     if (cameraOff) {
-        cameraBtn.innerText = "카메라 켜기"
+        cameraBtn.innerText = "카메라 O";
         cameraOff = false;
     } else {
-        cameraBtn.innerText = "카메라 끄기"
+        cameraBtn.innerText = "카메라 X";
         cameraOff = true;
     }
 }
 
 async function handleCameraChange() {
-    getMedia(camerasSelect.value)
+    await getMedia(camerasSelect.value);
+    if (myPeerConnection) {
+        const videoTrack = myStream.getVideoTracks()[0];
+        const videoSender = myPeerConnection.getSenders()
+            .find(sender => sender.track.kind === "video");
+            videoSender.replaceTrack(videoTrack);
+    }
 }
 
 muteBtn.addEventListener("click", handleMuteClick); // 음소거
 cameraBtn.addEventListener("click", handleCameraClick); // 카메라
 camerasSelect.addEventListener("input", handleCameraChange);
-
 
 // welcome Form (join a room)
 
@@ -97,6 +105,9 @@ const welcomeForm = welcome.querySelector("form");
 async function initCall() {
     welcome.hidden = true;
     call.hidden = false;
+
+    // getMedia 함수를 호출하기 전에 myStream 초기화
+    myStream = new MediaStream(); // myStream 초기화
     await getMedia();
     makeConnection();
 }
@@ -110,9 +121,7 @@ async function handleWelcomeSubmit(event) {
     input.value = "";
 }
 
-
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
-
 
 // socket code
 
@@ -136,29 +145,43 @@ socket.on("answer", (answer) => {
     console.log("앤서 받았음");
     myPeerConnection.setRemoteDescription(answer);
 });
+
 socket.on("ice", ice => {
     console.log("아이스 캔디 받았음");
     myPeerConnection.addIceCandidate(ice);
 });
 
-
 // RTC code
 
 function makeConnection() {
-    myPeerConnection = new RTCPeerConnection();
+    myPeerConnection = new RTCPeerConnection({
+        iceServers:[
+            {
+                urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                ],
+            },
+        ],
+    });
+    
     myPeerConnection.addEventListener("icecandidate", handleIce);
     myPeerConnection.addEventListener("addstream", handleAddStream);
     myStream
+
         .getTracks()
         .forEach(track => myPeerConnection.addTrack(track, myStream));
 }
 
 function handleIce(data) {
     console.log("아이스 캔디 보냈음");
-    socket.emit("ice", data.condidate, roomName);
+    socket.emit("ice", data.candidate, roomName); // event.candidate 수정
 }
 
-function handleAddStream(data){
-    const peersStream = document.getElementById("peerFacs");
-    peersStream.srcObject = data.stream;
+function handleAddStream(event) {
+    const peersStream = document.getElementById("peerFace");
+    peersStream.srcObject = event.stream; // event.stream 수정
 }
