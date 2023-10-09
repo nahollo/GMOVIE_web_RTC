@@ -116,8 +116,21 @@ callDiv.hidden = true;
 async function initCall() {
   callDiv.hidden = false;
   welcomeDiv.hidden = true;
-  await getMedia();
+
+  try {
+    myStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false, // 오디오 트랙을 비활성화하여 내 스피커로 출력되지 않도록 합니다.
+    });
+
+    myFace.srcObject = myStream;
+
+    // 내 카메라 영상만 표시되고, 내 마이크 입력은 스피커로 출력되지 않습니다.
+  } catch (e) {
+    console.log(e);
+  }
 }
+
 
 async function handleWelcomeSubmit(event) {
   event.preventDefault();
