@@ -1,3 +1,4 @@
+
 const socket = io();
 
 const myFace = document.getElementById("myFace");
@@ -10,18 +11,14 @@ let myStream;
 let isMuted = true;
 let isCameraOn = false;
 let roomName;
-
-// 서버에서 넘겨주는 Downlink를 처리하기 위한 Map
-// Map<socketId, PeerConnection>
-let recvPeerMap = new Map();
-
-// 서버에 미디어 정보를 넘기기 위한 Peer
-let sendPeer;
+let peerMap = new Map();
 
 async function getCameras() {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const cameras = devices.filter((device) => device.kind === "videoinput");
+    const cameras = await devices.filter(
+      (device) => device.kind === "videoinput"
+    );
 
     const currentCamera = myStream.getVideoTracks()[0];
     cameras.forEach((camera) => {
@@ -93,14 +90,16 @@ function handleCameraClick() {
 
 async function handleCameaChange() {
   await getMedia(camearsSelect.value);
-  if (sendPeer) {
-    const videoTrack = myStream.getVideoTracks()[0];
-    const videoSender = sendPeer
-      .getSenders()
-      .find((sender) => sender.track.kind === "video");
+  peerMap.forEach((peerConnection) => {
+    if (peerConnection) {
+      const videoTrack = myStream.getVideoTracks()[0];
+      const videoSender = peerConnection
+        .getSenders()
+        .find((sender) => sender.track.kind === "video");
 
-    videoSender.replaceTrack(videoTrack);
-  }
+      videoSender.replaceTrack(videoTrack);
+    }
+  });
 }
 
 muteBtn.addEventListener("click", handleMuteClick);
@@ -132,145 +131,105 @@ const welcomeForm = welcomeDiv.querySelector("form");
 welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 // Socket code
-socket.on("user_list", (idList) => {
-  console.log("user_list = " + idList.toString());
+socket.on("welcome", async (fromId) => {
+  console.log(`${fromId} joined`);
 
-  // 아이디 정보를 바탕으로 recvPeer를 생성한다.
-  idList.forEach((id) => {
-    createRecvPeer(id);
-    creatRecvOffer(id);
-  });
+  // 새로 들어온 Client와 Connection을 생성한다. (offer를 생성하는 쪽)
+  makeConnection(fromId);
+  console.log(`made connection with ${fromId}`);
 
-  // sendPeer를 생성한다.
-  createSendPeer();
-  createSendOffer();
+  const offer = await peerMap.get(fromId).createOffer();
+  peerMap.get(fromId).setLocalDescription(offer);
+
+  console.log(`sent to the offer to ${fromId}`);
+  socket.emit("offer", offer, fromId);
 });
 
-socket.on("recvCandidate", async (candidate, sendId) => {
-  console.log("got recvCandidate from server");
-  recvPeerMap.get(sendId).addIceCandidate(candidate);
+socket.on("offer", async (offer, fromId) => {
+  console.log(`got offer from ${fromId}`);
+
+  // 새로 들어온 Client와 Connection을 생성한다. (offer를 받는 쪽)
+  makeConnection(fromId);
+  console.log(`made connection with ${fromId}`);
+
+  peerMap.get(fromId).setRemoteDescription(offer);
+  const answer = await peerMap.get(fromId).createAnswer();
+  peerMap.get(fromId).setLocalDescription(answer);
+
+  console.log(`sent the answer to ${fromId}`);
+  socket.emit("answer", answer, fromId);
 });
 
-socket.on("sendCandidate", async (candidate) => {
-  console.log("got sendCandidate from server");
-  sendPeer.addIceCandidate(candidate);
+socket.on("answer", (answer, fromId) => {
+  console.log(`received the answer from ${fromId}`);
+  peerMap.get(fromId).setRemoteDescription(answer);
 });
 
-socket.on("newStream", (id) => {
-  console.log(`newStream id=${id}`);
-  createRecvPeer(id);
-  creatRecvOffer(id);
-});
-
-async function createSendOffer() {
-  console.log(`createSendOffer`);
-  const offer = await sendPeer.createOffer({
-    offerToReceiveVideo: false,
-    offerToReceiveAudio: false,
-  });
-
-  sendPeer.setLocalDescription(offer);
-  socket.emit("sendOffer", offer);
-}
-
-function createSendPeer() {
-  sendPeer = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: ["turn:13.250.13.83:3478?transport=udp"],
-        username: "YzYNCouZM1mhqhmseWk6",
-        credential: "YzYNCouZM1mhqhmseWk6",
-      },
-    ],
-  });
-
-  sendPeer.addEventListener("icecandidate", (data) => {
-    console.log(`sent sendCandidate to server`);
-    socket.emit("sendCandidate", data.candidate);
-  });
-
-  if (myStream) {
-    myStream.getTracks().forEach((track) => {
-      sendPeer.addTrack(track, myStream);
-    });
-
-    console.log("add local stream");
-  } else {
-    console.log("no local stream");
-  }
-}
-
-function createRecvPeer(sendId) {
-  recvPeerMap.set(
-    sendId,
-    new RTCPeerConnection({
-      iceServers: [
-        {
-          urls: ["turn:13.250.13.83:3478?transport=udp"],
-          username: "YzYNCouZM1mhqhmseWk6",
-          credential: "YzYNCouZM1mhqhmseWk6",
-        },
-      ],
-    })
-  );
-
-  recvPeerMap.get(sendId).addEventListener("icecandidate", (data) => {
-    console.log(`sent recvCandidate to server`);
-    socket.emit("recvCandidate", data.candidate, sendId);
-  });
-
-  recvPeerMap.get(sendId).addEventListener("track", (data) => {
-    handleTrack(data, sendId);
-  });
-}
-
-async function creatRecvOffer(sendId) {
-  console.log(`createRecvOffer sendId = ${sendId}`);
-  const offer = await recvPeerMap.get(sendId).createOffer({
-    offerToReceiveVideo: true,
-    offerToReceiveAudio: true,
-  });
-
-  recvPeerMap.get(sendId).setLocalDescription(offer);
-
-  console.log(`send recvOffer to server`);
-  socket.emit("recvOffer", offer, sendId);
-}
-
-socket.on("sendAnswer", async (answer) => {
-  console.log("got sendAnswer from server");
-  sendPeer.setRemoteDescription(answer);
-});
-
-socket.on("recvAnswer", async (answer, sendId) => {
-  console.log("got recvAnswer from server");
-  recvPeerMap.get(sendId).setRemoteDescription(answer);
+socket.on("ice", (ice, fromId) => {
+  console.log(`received ice from ${fromId}`);
+  peerMap.get(fromId).addIceCandidate(ice);
 });
 
 socket.on("bye", (fromId) => {
   // 나간 유저의 정보를 없앤다.
   console.log("bye " + fromId);
-  recvPeerMap.get(fromId).close();
-  recvPeerMap.delete(fromId);
+  peerMap.get(fromId).close();
+  peerMap.delete(fromId);
 
   let video = document.getElementById(`${fromId}`);
   streamDiv.removeChild(video);
 });
 
 // RTC code
-function handleTrack(data, sendId) {
-  let video = document.getElementById(`${sendId}`);
+function makeConnection(fromId) {
+  peerMap.set(
+    fromId,
+    new RTCPeerConnection({
+      iceServers: [
+        {
+          urls: [
+            "stun:stun.l.google.com:19302",
+            "stun:stun1.l.google.com:19302",
+            "stun:stun2.l.google.com:19302",
+            "stun:stun3.l.google.com:19302",
+            "stun:stun4.l.google.com:19302",
+          ],
+        },
+      ],
+    })
+  );
+
+  peerMap.get(fromId).addEventListener("icecandidate", (data) => {
+    handleIce(data, fromId);
+  });
+  peerMap.get(fromId).addEventListener("track", (data) => {
+    handleTrack(data, fromId);
+  });
+
+  myStream
+    .getTracks()
+    .forEach((track) => peerMap.get(fromId).addTrack(track, myStream));
+}
+
+
+function handleIce(data, fromId) {
+  // send candidates to other browser
+  console.log(`sent candidate to ${fromId}`);
+  socket.emit("ice", data.candidate, fromId);
+}
+
+function handleTrack(data, fromId) {
+  let video = document.getElementById(`${fromId}`);
   if (!video) {
     video = document.createElement("video");
-    video.id = sendId;
-    video.width = 100;
-    video.height = 100;
+    video.id = fromId;
+    video.width = 300;
+    video.height = 300;
     video.autoplay = true;
     video.playsInline = true;
-
     streamDiv.appendChild(video);
   }
 
-  console.log(`handleTrack from ${sendId}`);
+  console.log(`handleTrack from ${fromId}`);
   video.srcObject = data.streams[0];
 }
