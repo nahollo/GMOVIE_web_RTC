@@ -15,11 +15,12 @@ html(lang="en")
                     button 회의실 입장
             div#call
                 div#myStream
-                    video#myFace(autoplay, playsinline, width = "400", height="400")
+                    video#myFace(autoplay, playsinline, width = "540", height="540")
+                    video#peerFace(autoplay, playsinline, width = "540", height="540")
+                div(style="text-align: center;")
                     button#mute 마이크 X
                     button#camera 카메라 X
                     select#cameras
-                    video#peerFace(autoplay, playsinline, width = "400", height="400")
 
 
             
