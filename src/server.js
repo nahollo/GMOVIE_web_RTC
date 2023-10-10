@@ -2,9 +2,12 @@ import http from "http";
 import SocketIO from "socket.io";
 import express from "express";
 import wrtc from "wrtc";
+import path from "path";
+
 
 const app = express();
-app.set("view engine", "pug");
+// app.set("view engine", "pug");
+app.get("/", (_, res) => res.sendFile(path.join(__dirname, "views", "home.html")));
 app.set("views", __dirname + "/views");
 app.use("/public", express.static(__dirname + "/public"));
 app.get("/", (_, res) => res.render("home"));

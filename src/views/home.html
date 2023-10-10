@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMOVIE</title>
+    <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #2d8cff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            padding: 0;
+        }
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 60px);
+        }
+        #welcome {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 300px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2d8cff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1f5eb8;
+        }
+        #call {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        #myStream {
+            position: relative;
+        }
+        #otherStream {
+            position: relative;
+        }
+        video#myFace {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button#mute,
+        button#camera,
+        select#cameras {
+            margin-top: 10px;
+        }
+        select#cameras {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GMOVIE</h1>
+    </header>
+    <main>
+        <div id="welcome">
+            <form>
+                <input placeholder="회의 방 이름" required type="text">
+                <button>회의 참가</button>
+            </form>
+        </div>
+        <div id="call">
+            <div id="otherStream"></div>
+            <div id="myStream">
+                <video autoplay playsinline width="50" height="50" id="myFace"></video>
+            </div>
+            <div>
+                <button id="mute">Mute</button>
+                <button id="camera">Turn Camera Off</button>
+                <select id="cameras"></select>
+            </div>
+        </div>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/js/app.js"></script>
+</body>
+</html>

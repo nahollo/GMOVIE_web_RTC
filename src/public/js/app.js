@@ -4,8 +4,8 @@ const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
 const camearsSelect = document.getElementById("cameras");
-const streamDiv = document.querySelector("#myStream");
-const otherStreamDiv = document.querySelector("#otherStream");
+const streamDiv = document.querySelector("myStream");
+const otherStreamDiv = document.querySelector("otherStream");
 
 let myStream;
 let isMuted = true;
