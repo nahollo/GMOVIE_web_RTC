@@ -5,6 +5,7 @@ const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
 const camearsSelect = document.getElementById("cameras");
 const streamDiv = document.querySelector("#myStream");
+const otherStreamDiv = document.querySelector("#otherStream");
 
 let myStream;
 let isMuted = true;
@@ -116,21 +117,8 @@ callDiv.hidden = true;
 async function initCall() {
   callDiv.hidden = false;
   welcomeDiv.hidden = true;
-
-  try {
-    myStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false, // 오디오 트랙을 비활성화하여 내 스피커로 출력되지 않도록 합니다.
-    });
-
-    myFace.srcObject = myStream;
-
-    // 내 카메라 영상만 표시되고, 내 마이크 입력은 스피커로 출력되지 않습니다.
-  } catch (e) {
-    console.log(e);
-  }
+  await getMedia();
 }
-
 
 async function handleWelcomeSubmit(event) {
   event.preventDefault();
@@ -267,7 +255,7 @@ socket.on("bye", (fromId) => {
   recvPeerMap.delete(fromId);
 
   let video = document.getElementById(`${fromId}`);
-  streamDiv.removeChild(video);
+  otherStreamDiv.removeChild(video);
 });
 
 // RTC code
@@ -276,12 +264,12 @@ function handleTrack(data, sendId) {
   if (!video) {
     video = document.createElement("video");
     video.id = sendId;
-    video.width = 100;
-    video.height = 100;
+    video.width = 300;
+    video.height = 300;
     video.autoplay = true;
     video.playsInline = true;
 
-    streamDiv.appendChild(video);
+    otherStreamDiv.appendChild(video);
   }
 
   console.log(`handleTrack from ${sendId}`);
