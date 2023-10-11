@@ -3,9 +3,9 @@ const socket = io();
 const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraBtn = document.getElementById("camera");
-const camearsSelect = document.getElementById("cameras");
-const streamDiv = document.querySelector("myStream");
-const otherStreamDiv = document.querySelector("otherStream");
+const camerasSelect = document.getElementById("cameras");
+const streamDiv = document.querySelector("#myStream");
+const otherStreamDiv = document.querySelector("#otherStream");
 
 let myStream;
 let isMuted = true;
@@ -29,10 +29,10 @@ async function getCameras() {
       const option = document.createElement("option");
       option.value = camera.deviceId;
       option.innerText = camera.label;
-      if (currentCamera.label === camera.lable) {
+      if (currentCamera.label === camera.label) {
         option.selected = true;
       }
-      camearsSelect.appendChild(option);
+      camerasSelect.appendChild(option);
     });
 
     console.log(cameras);
@@ -44,7 +44,7 @@ async function getCameras() {
 async function getMedia(deviceId) {
   const initialConstraint = {
     audio: true,
-    video: { facingMdoe: "user" },
+    video: { facingMode: "user" },
   };
 
   const cameraConstraints = {
@@ -92,8 +92,8 @@ function handleCameraClick() {
   }
 }
 
-async function handleCameaChange() {
-  await getMedia(camearsSelect.value);
+async function handleCameraChange() {
+  await getMedia(camerasSelect.value);
   if (sendPeer) {
     const videoTrack = myStream.getVideoTracks()[0];
     const videoSender = sendPeer
@@ -106,7 +106,7 @@ async function handleCameaChange() {
 
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
-camearsSelect.addEventListener("input", handleCameaChange);
+camerasSelect.addEventListener("input", handleCameraChange);
 
 // Welcome Form (join a room)
 const welcomeDiv = document.getElementById("welcome");
@@ -139,7 +139,7 @@ socket.on("user_list", (idList) => {
   // 아이디 정보를 바탕으로 recvPeer를 생성한다.
   idList.forEach((id) => {
     createRecvPeer(id);
-    creatRecvOffer(id);
+    createRecvOffer(id);
   });
 
   // sendPeer를 생성한다.
@@ -160,14 +160,14 @@ socket.on("sendCandidate", async (candidate) => {
 socket.on("newStream", (id) => {
   console.log(`newStream id=${id}`);
   createRecvPeer(id);
-  creatRecvOffer(id);
+  createRecvOffer(id);
 });
 
 async function createSendOffer() {
   console.log(`createSendOffer`);
   const offer = await sendPeer.createOffer({
-    offerToReceiveVideo: false,
-    offerToReceiveAudio: false,
+    offerToReceiveVideo: true,
+    offerToReceiveAudio: true,
   });
 
   sendPeer.setLocalDescription(offer);
@@ -177,11 +177,12 @@ async function createSendOffer() {
 function createSendPeer() {
   sendPeer = new RTCPeerConnection({
     iceServers: [
+      { urls: 'stun:global.stun.twilio.com:3478' }, // STUN 서버
       {
-        urls: ["turn:13.250.13.83:3478?transport=udp"],
-        username: "YzYNCouZM1mhqhmseWk6",
-        credential: "YzYNCouZM1mhqhmseWk6",
-      },
+        urls: 'turn:global.turn.twilio.com:3478', // TURN 서버
+        username: 'SKdbaf9b2bdc6c41f2fee12f5adf6bd89c',
+        credential: 'kwYx7NoafMW2pulCyFAaWJ43AGzLMGM0',
+      }, 
     ],
   });
 
@@ -206,26 +207,41 @@ function createRecvPeer(sendId) {
     sendId,
     new RTCPeerConnection({
       iceServers: [
+        { urls: 'stun:global.stun.twilio.com:3478' }, // STUN 서버
         {
-          urls: ["turn:13.250.13.83:3478?transport=udp"],
-          username: "YzYNCouZM1mhqhmseWk6",
-          credential: "YzYNCouZM1mhqhmseWk6",
-        },
+          urls: 'turn:global.turn.twilio.com:3478', // TURN 서버
+          username: 'SKdbaf9b2bdc6c41f2fee12f5adf6bd89c',
+          credential: 'kwYx7NoafMW2pulCyFAaWJ43AGzLMGM0',
+        }, 
       ],
     })
   );
 
   recvPeerMap.get(sendId).addEventListener("icecandidate", (data) => {
-    console.log(`sent recvCandidate to server`);
     socket.emit("recvCandidate", data.candidate, sendId);
   });
 
   recvPeerMap.get(sendId).addEventListener("track", (data) => {
     handleTrack(data, sendId);
   });
+
+
+  // 카메라랑 마이크가 잘 가져와졌는지
+  navigator.mediaDevices.enumerateDevices()
+  .then(devices => {
+    devices.forEach(device => {
+      console.log(device.kind + ": " + device.label +
+                  " id = " + device.deviceId);
+    });
+  })
+  .catch(err => {
+    console.log(err.name + ": " + err.message);
+  });
+
+
 }
 
-async function creatRecvOffer(sendId) {
+async function createRecvOffer(sendId) {
   console.log(`createRecvOffer sendId = ${sendId}`);
   const offer = await recvPeerMap.get(sendId).createOffer({
     offerToReceiveVideo: true,

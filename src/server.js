@@ -105,11 +105,12 @@ wsServer.on("connection", (socket) => {
   function createRecvPeer() {
     let recvPeer = new wrtc.RTCPeerConnection({
       iceServers: [
+        { urls: 'stun:global.stun.twilio.com:3478' }, // STUN 서버
         {
-          urls: ["turn:13.250.13.83:3478?transport=udp"],
-          username: "YzYNCouZM1mhqhmseWk6",
-          credential: "YzYNCouZM1mhqhmseWk6",
-        },
+          urls: 'turn:global.turn.twilio.com:3478', // TURN 서버
+          username: 'SKdbaf9b2bdc6c41f2fee12f5adf6bd89c',
+          credential: 'kwYx7NoafMW2pulCyFAaWJ43AGzLMGM0',
+        }, 
       ],
     });
 
@@ -156,10 +157,11 @@ wsServer.on("connection", (socket) => {
   function createSendPeer(sendId) {
     let sendPeer = new wrtc.RTCPeerConnection({
       iceServers: [
+        { urls: 'stun:global.stun.twilio.com:3478' }, // STUN 서버
         {
-          urls: ["turn:13.250.13.83:3478?transport=udp"],
-          username: "YzYNCouZM1mhqhmseWk6",
-          credential: "YzYNCouZM1mhqhmseWk6",
+          urls: 'turn:global.turn.twilio.com:3478', // TURN 서버
+          username: 'SKdbaf9b2bdc6c41f2fee12f5adf6bd89c',
+          credential: 'kwYx7NoafMW2pulCyFAaWJ43AGzLMGM0',
         },
       ],
     });
