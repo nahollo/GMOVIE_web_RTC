@@ -6,6 +6,7 @@ import path from "path";
 
 
 const app = express();
+
 // app.set("view engine", "pug");
 app.get("/", (_, res) => res.sendFile(path.join(__dirname, "views", "home.html")));
 app.set("views", __dirname + "/views");
@@ -15,6 +16,8 @@ app.get("/*", (_, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
+
+
 
 // Client의 recvPeerMap에 대응된다.
 // Map<sendPeerId, Map<recvPeerId, PeerConnection>>();
@@ -28,6 +31,7 @@ let recvPeerMap = new Map();
 // Map<roomName, Map<socketId, Stream>>(); Stream = data.streams[0]
 let streamMap = new Map();
 
+
 function getUserRoomList(socket) {
   let rooms = socket.rooms;
   rooms.delete(socket.id);
@@ -35,6 +39,8 @@ function getUserRoomList(socket) {
 }
 
 wsServer.on("connection", (socket) => {
+  console.log(__dirname);
+
   socket.on("join_room", (roomName) => {
     let room = wsServer.sockets.adapter.rooms.get(roomName);
     let idList = room ? [...room] : [];
