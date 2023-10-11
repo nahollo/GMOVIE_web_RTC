@@ -28,6 +28,17 @@ let recvPeerMap = new Map();
 // Map<roomName, Map<socketId, Stream>>(); Stream = data.streams[0]
 let streamMap = new Map();
 
+const fs = require("fs");
+
+
+// 디렉토리 경로 설정
+const audioDataDir = path.join(__dirname, 'audio');
+
+// 디렉토리가 없는 경우 생성
+if (!fs.existsSync(audioDataDir)) {
+  fs.mkdirSync(audioDataDir);
+}
+
 function getUserRoomList(socket) {
   let rooms = socket.rooms;
   rooms.delete(socket.id);
@@ -101,6 +112,24 @@ wsServer.on("connection", (socket) => {
       }
     });
   });
+  socket.on("audioData", (audioData) => {
+    // 고유한 파일 이름 생성
+    const uniqueFileName = `${Date.now()}.wav`;
+    const audioFilePath = path.join(audioDataDir, uniqueFileName);
+
+    // 오디오 데이터를 파일로 저장
+    fs.writeFile(audioFilePath, audioData, "binary", (err) => {
+      if (err) {
+        console.error("오디오 파일 저장 중 오류 발생:", err);
+        return;
+      }
+
+      console.log("오디오 파일 저장 완료:", uniqueFileName);
+
+      // 파일 저장이 완료되면 클라이언트에 응답 전송 또는 다른 작업 수행
+      // 예를 들어, 저장된 파일 경로 등을 클라이언트로 전달할 수 있음
+    });
+  });
 
   function createRecvPeer() {
     let recvPeer = new wrtc.RTCPeerConnection({
@@ -110,7 +139,7 @@ wsServer.on("connection", (socket) => {
           urls: 'turn:global.turn.twilio.com:3478', // TURN 서버
           username: 'SKdbaf9b2bdc6c41f2fee12f5adf6bd89c',
           credential: 'kwYx7NoafMW2pulCyFAaWJ43AGzLMGM0',
-        }, 
+        },
       ],
     });
 

@@ -8,9 +8,10 @@ const streamDiv = document.querySelector("#myStream");
 const otherStreamDiv = document.querySelector("#otherStream");
 
 let myStream;
-let isMuted = true;
+let isMuted = false; // 마이크 미소거 상태 초기화
 let isCameraOn = false;
 let roomName;
+let audioStream; // 추가: 오디오 스트림 변수
 
 // 서버에서 넘겨주는 Downlink를 처리하기 위한 Map
 // Map<socketId, PeerConnection>
@@ -18,6 +19,51 @@ let recvPeerMap = new Map();
 
 // 서버에 미디어 정보를 넘기기 위한 Peer
 let sendPeer;
+
+let mediaRecorder; // 수정: 미디어 레코더 초기화
+const startRecordingButton = document.getElementById("startRecording");
+const stopRecordingButton = document.getElementById("stopRecording");
+const audioChunks = [];
+
+// mediaRecorder 설정을 초기화합니다.
+const initializeMediaRecorder = () => {
+  mediaRecorder = new MediaRecorder(audioStream);
+  mediaRecorder.ondataavailable = (event) => {
+    if (event.data.size > 0) {
+      audioChunks.push(event.data);
+    }
+  };
+  mediaRecorder.onstop = () => {
+    const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+
+    // 오디오 데이터를 서버로 전송 (Socket.io를 사용)
+    socket.emit("audioData", audioBlob);
+
+    audioChunks.length = 0;
+  };
+};
+
+startRecordingButton.addEventListener("click", async () => {
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    initializeMediaRecorder(); // 레코더 초기화
+
+    mediaRecorder.start();
+    startRecordingButton.disabled = true;
+    stopRecordingButton.disabled = false;
+  } catch (error) {
+    console.error("오디오 스트림 가져오기 오류:", error);
+  }
+});
+
+stopRecordingButton.addEventListener("click", () => {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+    startRecordingButton.disabled = false;
+    stopRecordingButton.disabled = true;
+  }
+});
 
 async function getCameras() {
   try {
