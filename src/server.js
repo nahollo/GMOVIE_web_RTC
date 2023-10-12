@@ -30,8 +30,6 @@ let streamMap = new Map();
 
 const fs = require("fs");
 
-let recordingStartTimes = new Map();
-
 
 // 디렉토리 경로 설정
 const audioDataDir = path.join(__dirname, 'audio');
@@ -122,15 +120,6 @@ wsServer.on("connection", (socket) => {
   socket.on("audioData", (audioData) => {
     const roomDir = path.join(audioDataDir, socket.roomName);
 
-    if (!recordingStartTimes.has(socket.roomName)) {
-      // 만약 해당 룸에서 녹음이 시작된 적이 없다면, 녹음 시작 시간을 설정
-      recordingStartTimes.set(socket.roomName, Date.now());
-    }
-
-    const startRecordingTime = recordingStartTimes.get(socket.roomName);
-    const currentTime = Date.now();
-    const paddingDuration = currentTime - startRecordingTime;
-
     // 방 디렉토리가 없는 경우 생성
     if (!fs.existsSync(roomDir)) {
       fs.mkdirSync(roomDir);
@@ -140,23 +129,16 @@ wsServer.on("connection", (socket) => {
     const uniqueFileName = `${Date.now()}.wav`;
     const audioFilePath = path.join(roomDir, uniqueFileName);
 
-    // 패딩을 생성하여 파일에 추가합니다.
-    const paddingAudioData = Buffer.alloc(paddingDuration);
-    const finalAudioData = Buffer.concat([paddingAudioData, audioData]);
-
-    console.log("녹음 시작 시간:", startRecordingTime);
-    console.log("현재 시간:", currentTime);
-    console.log("패딩 시간:", paddingDuration);
-
-    
-
-
-    fs.writeFile(audioFilePath, finalAudioData, "binary", (err) => {
+    // 오디오 데이터를 파일로 저장
+    fs.writeFile(audioFilePath, audioData, "binary", (err) => {
       if (err) {
         console.error("오디오 파일 저장 중 오류 발생:", err);
         return;
       }
       console.log("오디오 파일 저장 완료:", uniqueFileName);
+
+      // 파일 저장이 완료되면 클라이언트에 응답 전송 또는 다른 작업 수행
+      // 예를 들어, 저장된 파일 경로 등을 클라이언트로 전달할 수 있음
     });
   });
 

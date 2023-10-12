@@ -114,6 +114,9 @@ async function getMedia(deviceId) {
   } catch (e) {
     console.log(e);
   }
+  // 클라이언트에서 녹음 시작 명령을 서버로 보냅니다.
+socket.emit("startRecording", roomName);
+
 }
 
 function handleMuteClick() {
