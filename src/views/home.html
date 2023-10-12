@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GMOVIE</title>
     <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-    <img src="../views/img/gmovie_logo.png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -112,6 +111,7 @@
 
 <body>
     <div id="welcome">
+        <img src="/img/gmovie_logo.png">
         <h2>GMOVIE</h2>
         <form id="welcomeForm">
             <input type="text" placeholder="Enter Room Name" required>
@@ -134,8 +134,7 @@
                 <button id="camera">Turn Camera On</button>
             </div>
             <div>
-                <button id="startRecording">Start Recording</button>
-                <button id="stopRecording" disabled>Stop Recording</button>
+                <button id="endRoom">회의 나가기</button>
             </div>
         </div>
         <div id="chat" hidden>
@@ -151,5 +150,4 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/js/app.js"></script>
 </body>
-
 </html>
