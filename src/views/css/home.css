@@ -1,0 +1,172 @@
+/* body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+} */
+/* header {
+    position: relative;
+    background-color: #FFFFFF;
+    top: 180px;
+    color: #fff;
+    padding: 10px;
+    width: 300px;
+    text-align: center;
+    font-size: 300px;
+    font-weight: bold;
+} */
+body {
+    width: 1920px;
+    height: 8248px;
+    background-color: #FFFFFF; /* 하얀색 */
+    margin: 0;
+    padding: 0;
+    font-family: '나눔고딕', sans-serif; /* 폰트는 필요에 따라 변경 */
+}
+
+.top-bar {
+    width: 1920px;
+    height: 60px;
+    background-color: #37393F; /* 주어진 검은색 */
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 80px;
+    background-color: #FFFFFF;
+    padding: 0 20px; /* 좌우 여백을 조금 줍니다. 필요에 따라 조정 가능합니다. */
+    padding-top: 20px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    margin-left: 70px;
+}
+
+.logo {
+    height: 50px; /* 로고 크기를 조절하려면 이 값을 변경하세요. */
+    margin-right: 10px;
+}
+
+.site-name {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar li {
+    margin-right: 70px;
+}
+
+.navbar li:last-child {
+    margin-right: 0;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #FFFFFF; /* 글자 색상입니다. 필요에 따라 변경하세요. */
+    font-size: 22px;
+    transition: color 0.3s;
+    margin-bottom: 50px;
+}
+
+.navbar a:hover {
+    color: #555; /* 마우스 오버시의 글자 색상입니다. 필요에 따라 변경하세요. */
+}
+
+.login-button {
+    background-color: #37393F; /* 검은색 버튼 배경 */
+    color: #FFF;
+    border: none;
+    padding: 20px 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-right: 250px;
+}
+
+.login-button:hover {
+    background-color: #555;
+}
+
+h1 {
+    margin: 0;
+    padding: 10px;
+    color: #40DDB6;
+}
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 60px);
+}
+#welcome {
+    text-align: center;
+    margin-bottom: 150px;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -300px;
+}
+input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    width: 300px;
+    text-align: center;
+}
+button {
+    padding: 10px 20px;
+    background-color: #2d8cff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #1f5eb8;
+}
+#call {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: -100px;
+    margin-left: -325px;
+}
+#myStream {
+    position: relative;
+}
+#otherStream {
+    position: relative;
+}
+video#myFace {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+button#mute,
+button#camera
+{
+    margin-top: 10px;
+}
+select#cameras {
+    display: inline;
+    position: relative;
+    top: -15px;
+    margin-left: 15px;
+    margin-bottom: 20px;
+    padding: 5px;
+}
