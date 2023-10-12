@@ -45,7 +45,9 @@ function getUserRoomList(socket) {
   return [...rooms];
 }
 
+
 wsServer.on("connection", (socket) => {
+  const nickname = socket.id;
   socket.on("join_room", (roomName) => {
     let room = wsServer.sockets.adapter.rooms.get(roomName);
     let idList = room ? [...room] : [];
@@ -53,8 +55,11 @@ wsServer.on("connection", (socket) => {
     console.log(idList);
     socket.emit("user_list", idList);
 
+    socket.emit("nickname", nickname);
+
     console.log("join_room id = " + socket.id);
     socket.join(roomName);
+    socket.roomName = roomName;
   });
 
   socket.on("recvOffer", async (offer, sendId) => {
@@ -113,9 +118,16 @@ wsServer.on("connection", (socket) => {
     });
   });
   socket.on("audioData", (audioData) => {
+    const roomDir = path.join(audioDataDir, socket.roomName);
+
+    // 방 디렉토리가 없는 경우 생성
+    if (!fs.existsSync(roomDir)) {
+      fs.mkdirSync(roomDir);
+    }
+
     // 고유한 파일 이름 생성
     const uniqueFileName = `${Date.now()}.wav`;
-    const audioFilePath = path.join(audioDataDir, uniqueFileName);
+    const audioFilePath = path.join(roomDir, uniqueFileName);
 
     // 오디오 데이터를 파일로 저장
     fs.writeFile(audioFilePath, audioData, "binary", (err) => {
@@ -123,13 +135,26 @@ wsServer.on("connection", (socket) => {
         console.error("오디오 파일 저장 중 오류 발생:", err);
         return;
       }
-
       console.log("오디오 파일 저장 완료:", uniqueFileName);
 
       // 파일 저장이 완료되면 클라이언트에 응답 전송 또는 다른 작업 수행
       // 예를 들어, 저장된 파일 경로 등을 클라이언트로 전달할 수 있음
     });
   });
+
+  // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
+  socket.on("new_message", (msg, room, done) => {
+    console.log("cex");
+    // room에 연결된 모든 클라이언트에게 메시지를 전달
+    socket.to(room).emit("chatMessage", msg, nickname);
+    // 클라이언트에게 완료 신호를 보내기 위해 done() 호출
+    done();
+    
+  });
+
+
+
+
 
   function createRecvPeer() {
     let recvPeer = new wrtc.RTCPeerConnection({
