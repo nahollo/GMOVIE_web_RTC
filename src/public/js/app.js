@@ -248,14 +248,13 @@ sendMessageForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const input = chatDiv.querySelector("#messageInput"); // "#messageInput"으로 변경해야 합니다.
   const value = input.value;
-
-
-
   socket.emit("new_message", value, roomName, () => {
     addMessage(`You : ${value}`);
   });
   input.value = "";
 });
+
+
 
 async function createSendOffer() {
   console.log(`createSendOffer`);
@@ -314,10 +313,10 @@ function createRecvPeer(sendId) {
   recvPeerMap.get(sendId).addEventListener("icecandidate", (data) => {
     socket.emit("recvCandidate", data.candidate, sendId);
   });
-
   recvPeerMap.get(sendId).addEventListener("track", (data) => {
     handleTrack(data, sendId);
   });
+
 
   // 카메라랑 마이크가 잘 가져와졌는지
   navigator.mediaDevices.enumerateDevices()
@@ -386,6 +385,7 @@ function handleTrack(data, sendId) {
     video.height = 300;
     video.autoplay = true;
     video.playsInline = true;
+
     otherStreamDiv.appendChild(video);
   }
 

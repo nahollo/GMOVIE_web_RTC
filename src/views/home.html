@@ -6,39 +6,148 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GMOVIE</title>
     <link rel="stylesheet" href="https://unpkg.com/mvp.css">
-    <main>
-        <div id="welcome">
-            <form>
-                <input placeholder="회의 방 이름" required type="text"><br>
-                <button type="button" class="btn btn-primary">회의 참가</button>
-            </form>
-        </div>
-        <div id="call">
-            <div id="otherStream"></div>
+    <img src="../views/img/gmovie_logo.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2d8cff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: calc(100vh - 60px);
+        }
+
+        #welcome {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #2d8cff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1f5eb8;
+        }
+
+        #call {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 70%;
+        }
+
+        #myStream {
+            position: relative;
+        }
+
+        #otherStream {
+            position: relative;
+        }
+
+        video#myFace {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button#mute,
+        button#camera,
+        select#cameras {
+            margin-top: 10px;
+        }
+
+        select#cameras {
+            padding: 5px;
+        }
+
+        #chat {
+            width: 30%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="welcome">
+        <h2>GMOVIE</h2>
+        <form id="welcomeForm">
+            <input type="text" placeholder="Enter Room Name" required>
+            <button type="submit">Join Room</button>
+        </form>
+    </div>
+    <div>
+
+        <div id="call" hidden>
+            <h2>회 의 실</h2>
+            <div id="otherStream">
+            </div>
             <div id="myStream">
-                <video autoplay playsinline width="50" height="50" id="myFace"></video>
+                <video id="myFace" autoplay playsinline width="100" height="100"></video>
+            </div>
+
+            <div>
                 <select id="cameras"></select>
+                <button id="mute">Mute</button>
+                <button id="camera">Turn Camera On</button>
             </div>
             <div>
-                <button id="mute">Mute</button>
-                <button id="camera">Turn Camera Off</button>
-                <select id="cameras"></select>
-                <button id="startRecording">녹음 시작</button>
-                <button id="stopRecording">녹음 중지</button>
+                <button id="startRecording">Start Recording</button>
+                <button id="stopRecording" disabled>Stop Recording</button>
             </div>
         </div>
-
         <div id="chat" hidden>
-            <h2>Chat</h2>
+            <h2>채팅</h2>
             <ul id="chatMessages"></ul>
             <form id="sendMessageForm">
                 <input type="text" placeholder="Type your message" id="messageInput">
                 <button type="submit">Send</button>
             </form>
         </div>
+    </div>
 
-        </div>
-    </main>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/js/app.js"></script>
 </body>
