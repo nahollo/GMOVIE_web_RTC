@@ -144,17 +144,11 @@ wsServer.on("connection", (socket) => {
 
   // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
   socket.on("new_message", (msg, room, done) => {
-    console.log("cex");
     // room에 연결된 모든 클라이언트에게 메시지를 전달
     socket.to(room).emit("chatMessage", msg, nickname);
     // 클라이언트에게 완료 신호를 보내기 위해 done() 호출
     done();
-    
   });
-
-
-
-
 
   function createRecvPeer() {
     let recvPeer = new wrtc.RTCPeerConnection({

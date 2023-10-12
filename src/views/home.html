@@ -109,32 +109,32 @@
     </style>
 </head>
 
-<body>
-    <div id="welcome">
-        <h2>Welcome to the Video Chat</h2>
-        <form id="welcomeForm">
-            <input type="text" placeholder="Enter Room Name" required>
-            <button type="submit">Join Room</button>
-        </form>
-    </div>
-    <div>
+<header>
+    <h1>GMOVIE</h1>
+</header>
 
-        <div id="call" hidden>
-            <h2>In Call</h2>
-            <div id="myStream">
-                <video id="myFace" autoplay playsinline width="100" height="100"></video>
-            </div>
+<body>
+    <main>
+        <div id="welcome">
+            <form>
+                <input placeholder="회의 방 이름" required type="text">
+                <button>회의 참가</button>
+            </form>
+        </div>
+        <div id="call">
             <div id="otherStream"></div>
-            <div>
-                <select id="cameras"></select>
-                <button id="mute">Mute</button>
-                <button id="camera">Turn Camera On</button>
+            <div id="myStream">
+                <video autoplay playsinline width="50" height="50" id="myFace"></video>
             </div>
             <div>
-                <button id="startRecording">Start Recording</button>
-                <button id="stopRecording" disabled>Stop Recording</button>
+                <button id="mute">Mute</button>
+                <button id="camera">Turn Camera Off</button>
+                <select id="cameras"></select>
+                <button id="startRecording">녹음 시작</button>
+                <button id="stopRecording">녹음 중지</button>
             </div>
         </div>
+
         <div id="chat" hidden>
             <h2>Chat</h2>
             <ul id="chatMessages"></ul>
@@ -143,8 +143,9 @@
                 <button type="submit">Send</button>
             </form>
         </div>
-    </div>
 
+        </div>
+    </main>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/js/app.js"></script>
 </body>
