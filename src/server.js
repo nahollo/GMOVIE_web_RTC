@@ -158,24 +158,10 @@ wsServer.on("connection", (socket) => {
     if (socket.roomName) {
       const roomName = socket.roomName;
       const userId = socket.id;
-
-      // 방에서 클라이언트를 나가게 하기
       socket.leave(roomName);
-
-      // 그 외 필요한 작업 수행
-      // 예: 방에서 나간 사용자에게 알림을 보내거나 기타 작업을 수행
-
-      // 예: 나가는 클라이언트에게 나가기 이벤트 보내기
-      // socket.emit("leftRoom");
-
-      // 예: 방에 있는 다른 사용자에게 나간 사용자 정보 보내기
       socket.to(roomName).emit("bye", userId);
     }
   });
-
-
-
-
 
   function createRecvPeer() {
     let recvPeer = new wrtc.RTCPeerConnection({

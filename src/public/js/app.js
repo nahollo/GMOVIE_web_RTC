@@ -10,6 +10,10 @@ const chatMessages = document.getElementById("chatMessages");
 const messageInput = document.getElementById("messageInput");
 const sendMessageForm = document.getElementById("sendMessageForm");
 const endRoomBtn = document.getElementById("endRoom");
+const boomBtn = document.getElementById("boom");
+const joinRoomBtn = document.getElementById("joinRoom");
+const createRoomBtn = document.getElementById("createRoom");
+const welcomeForm = document.querySelector("#welcome");
 
 
 
@@ -18,7 +22,6 @@ let isMuted = false; // 마이크 미소거 상태 초기화
 let isCameraOn = false;
 let roomName;
 let audioStream; // 추가: 오디오 스트림 변수
-
 // 서버에서 넘겨주는 Downlink를 처리하기 위한 Map
 // Map<socketId, PeerConnection>
 let recvPeerMap = new Map();
@@ -92,7 +95,7 @@ async function getMedia(deviceId) {
     console.log(e);
   }
   // 클라이언트에서 녹음 시작 명령을 서버로 보냅니다.
-socket.emit("startRecording", roomName);
+  socket.emit("startRecording", roomName);
 
 }
 
@@ -146,6 +149,7 @@ const chatDiv = document.getElementById("chat");
 
 callDiv.hidden = true;
 chatDiv.hidden = true;
+boomBtn.hidden = true;
 
 async function initCall() {
   callDiv.hidden = false;
@@ -154,7 +158,7 @@ async function initCall() {
   await getMedia();
 }
 
-async function handleWelcomeSubmit(event) {
+async function handleWelcome(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
   await initCall();
@@ -162,8 +166,6 @@ async function handleWelcomeSubmit(event) {
   roomName = input.value;
   console.log("roomName:", roomName); // 로그로 값 확인
   input.value = "";
-
-
   try {
     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     initializeMediaRecorder(); // 레코더 초기화
@@ -171,12 +173,32 @@ async function handleWelcomeSubmit(event) {
   } catch (error) {
     console.error("오디오 스트림 가져오기 오류:", error);
   }
-
-
 }
 
-const welcomeForm = welcomeDiv.querySelector("form");
-welcomeForm.addEventListener("submit", handleWelcomeSubmit);
+async function handleCreateNewRoom(event) {
+  event.preventDefault();
+  endRoomBtn.hidden = true;
+  boomBtn.hidden = false;
+  const roomName = `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`;
+  await initCall()
+  socket.emit("join_room", roomName);
+  console.log("roomName:", roomName);
+  const roomNameDiv = document.createElement("div");
+  roomNameDiv.textContent = `회의 코드 : ${roomName}`;
+  callDiv.appendChild(roomNameDiv);
+
+
+
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    initializeMediaRecorder();
+    mediaRecorder.start();
+  } catch (error) {
+    console.error("오디오 스트림 가져오기 오류:", error);
+  }
+}
+joinRoomBtn.addEventListener("click", handleWelcome);
+createRoomBtn.addEventListener("click", handleCreateNewRoom);
 
 // Socket code
 socket.on("user_list", (idList) => {
@@ -214,7 +236,7 @@ socket.on("newStream", (id) => {
   createRecvOffer(id);
 });
 
-socket.on("chatMessage", (message, sendId, ) => {
+socket.on("chatMessage", (message, sendId,) => {
   const li = document.createElement("li");
   li.textContent = `${sendId} : ${message}`;
   chatMessages.appendChild(li);
@@ -251,6 +273,10 @@ endRoomBtn.addEventListener("click", () => {
   callDiv.hidden = true;
   chatDiv.hidden = true;
   welcomeDiv.hidden = false;
+});
+
+boomBtn.addEventListener("click", () => {
+  console.log("hello")
 });
 
 async function createSendOffer() {
@@ -316,6 +342,7 @@ function createRecvPeer(sendId) {
 
 
 
+
   // 카메라랑 마이크가 잘 가져와졌는지
   navigator.mediaDevices.enumerateDevices()
     .then(devices => {
@@ -369,6 +396,18 @@ window.addEventListener('beforeunload', (event) => {
   }
 });
 
+const inputField = welcomeForm.querySelector("input");
+
+inputField.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const inputValue = inputField.value.replace(/ /g, ''); // 모든 공백 문자를 제거하여 확인합니다.
+    if (inputValue) {
+      joinRoomBtn.click();
+    }
+  }
+});
+
 
 // RTC code
 function handleTrack(data, sendId) {
@@ -386,15 +425,14 @@ function handleTrack(data, sendId) {
 
   console.log(`handleTrack from ${sendId}`);
   video.srcObject = data.streams[0];
-
-  // 내 비디오의 볼륨 0
+  
   if (video.id === "myFace") {
     video.volume = 0;
   }
 }
 
 
-function addMessage(message){
+function addMessage(message) {
   const ul = chatDiv.querySelector("ul");
   const li = document.createElement("li");
   li.innerText = message;

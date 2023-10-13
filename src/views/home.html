@@ -111,11 +111,11 @@
 
 <body>
     <div id="welcome">
-        <img src="/img/gmovie_logo.png">
         <h2>GMOVIE</h2>
         <form id="welcomeForm">
-            <input type="text" placeholder="Enter Room Name" required>
-            <button type="submit">Join Room</button>
+            <input type="text" placeholder="회의 코드" required>
+            <button type="button" id = "createRoom">회의 만들기</button>
+            <button type="button" id = "joinRoom">회의 참여하기</button>
         </form>
     </div>
     <div>
@@ -127,7 +127,6 @@
             <div id="myStream">
                 <video id="myFace" autoplay playsinline width="100" height="100"></video>
             </div>
-
             <div>
                 <select id="cameras"></select>
                 <button id="mute">Mute</button>
@@ -135,6 +134,7 @@
             </div>
             <div>
                 <button id="endRoom">회의 나가기</button>
+                <button id="boom" hidden>회의 종료하기</button>
             </div>
         </div>
         <div id="chat" hidden>
