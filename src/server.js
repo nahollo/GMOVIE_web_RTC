@@ -11,6 +11,7 @@ app.get("/", (_, res) => res.sendFile(path.join(__dirname, "views", "home.html")
 app.set("views", __dirname + "/views");
 app.use("/public", express.static(__dirname + "/public"));
 app.use("/img", express.static(path.join(__dirname, "views", "img")));
+app.use("/css", express.static(path.join(__dirname, "views", "css")));
 app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
 
@@ -151,7 +152,7 @@ wsServer.on("connection", (socket) => {
     socket.to(room).emit("chatMessage", msg, nickname);
     // 클라이언트에게 완료 신호를 보내기 위해 done() 호출
     done();
-    
+
   });
 
   socket.on("leaveRoom", () => {
@@ -161,6 +162,21 @@ wsServer.on("connection", (socket) => {
       socket.leave(roomName);
       socket.to(roomName).emit("bye", userId);
     }
+  });
+
+  socket.on("boom", () => {
+    const roomName = socket.roomName;
+
+    // 방의 모든 사용자에게 나가라는 신호를 보냅니다.
+    wsServer.to(roomName).emit("exit_all");
+
+    // 모든 사용자를 방에서 나가게 만듭니다.
+    wsServer.in(roomName).fetchSockets().then((sockets) => {
+      sockets.forEach((userSocket) => {
+        userSocket.leave(roomName);
+      });
+    });
+
   });
 
   function createRecvPeer() {

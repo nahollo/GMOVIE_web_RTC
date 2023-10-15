@@ -389,6 +389,44 @@ socket.on("bye", (fromId) => {
   otherStreamDiv.removeChild(video);
 });
 
+boomBtn.addEventListener("click", () => {
+  // 1. 녹음 중지
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
+  // 2. 서버에 회의방 퇴장 이벤트 보내기
+  socket.emit("leaveRoom", roomName); // roomName은 현재 회의방 이름입니다.
+  // 3. 카메라와 비디오 끄기
+  myStream.getTracks().forEach((track) => {
+    track.stop(); // 각 트랙을 정지합니다.
+  });
+  myFace.srcObject = null; // 화면에서 비디오 스트림을 제거합니다.
+  // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
+  callDiv.hidden = true;
+  chatDiv.hidden = true;
+  welcomeDiv.hidden = false;
+  // 5. 서버에 병합 이벤트 보내기
+  socket.emit("boom");
+});
+socket.on("exit_all", () => {
+  // 1. 녹음 중지
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
+
+
+  alert("회의가 종료됐습니다.");
+  // 3. 카메라와 비디오 끄기
+  myStream.getTracks().forEach((track) => {
+    track.stop(); // 각 트랙을 정지합니다.
+  });
+  myFace.srcObject = null; // 화면에서 비디오 스트림을 제거합니다.
+  // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
+  callDiv.hidden = true;
+  chatDiv.hidden = true;
+  welcomeDiv.hidden = false;
+});
+
 window.addEventListener('beforeunload', (event) => {
   // 녹음 중인 경우 녹음을 중지합니다.
   if (mediaRecorder && mediaRecorder.state === "recording") {
