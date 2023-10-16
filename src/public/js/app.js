@@ -16,7 +16,6 @@ const createRoomBtn = document.getElementById("createRoom");
 const welcomeForm = document.querySelector("#welcome");
 
 
-
 let myStream;
 let isMuted = false; // 마이크 미소거 상태 초기화
 let isCameraOn = false;
@@ -33,6 +32,7 @@ var nickname;
 
 let mediaRecorder; // 수정: 미디어 레코더 초기화
 const audioChunks = [];
+const roomNameDiv = document.createElement("div");
 
 // mediaRecorder 설정을 초기화합니다.
 const initializeMediaRecorder = () => {
@@ -50,6 +50,7 @@ const initializeMediaRecorder = () => {
     audioChunks.length = 0;
   };
 };
+
 async function getCameras() {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -82,21 +83,13 @@ async function getMedia(deviceId) {
     audio: true,
     video: { deviceId: { exact: deviceId } },
   };
-
-  try {
-    myStream = await navigator.mediaDevices.getUserMedia(
-      deviceId ? cameraConstraints : initialConstraint
-    );
-    myFace.srcObject = myStream;
-    if (!deviceId) {
-      await getCameras();
-    }
-  } catch (e) {
-    console.log(e);
+  myStream = await navigator.mediaDevices.getUserMedia(
+    deviceId ? cameraConstraints : initialConstraint
+  );
+  myFace.srcObject = myStream;
+  if (!deviceId) {
+    await getCameras();
   }
-  // 클라이언트에서 녹음 시작 명령을 서버로 보냅니다.
-  socket.emit("startRecording", roomName);
-
 }
 
 function handleMuteClick() {
@@ -162,17 +155,16 @@ async function handleWelcome(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
   await initCall();
-  socket.emit("join_room", input.value);
+  
+  const myDate = new Date();
+  socket.emit("join_room", input.value, myDate.getTime());
   roomName = input.value;
   console.log("roomName:", roomName); // 로그로 값 확인
   input.value = "";
-  try {
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    initializeMediaRecorder(); // 레코더 초기화
-    mediaRecorder.start();
-  } catch (error) {
-    console.error("오디오 스트림 가져오기 오류:", error);
-  }
+  audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  initializeMediaRecorder(); // 레코더 초기화
+  mediaRecorder.start();
 }
 
 async function handleCreateNewRoom(event) {
@@ -180,27 +172,21 @@ async function handleCreateNewRoom(event) {
   endRoomBtn.hidden = true;
   boomBtn.hidden = false;
   const roomName = `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`;
-  await initCall()
-  socket.emit("join_room", roomName);
+  await initCall();
+  const startDate = new Date();
+  socket.emit("join_room", roomName, startDate.getTime());
   console.log("roomName:", roomName);
-  const roomNameDiv = document.createElement("div");
   roomNameDiv.textContent = `회의 코드 : ${roomName}`;
   callDiv.appendChild(roomNameDiv);
 
-
-
-  try {
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    initializeMediaRecorder();
-    mediaRecorder.start();
-  } catch (error) {
-    console.error("오디오 스트림 가져오기 오류:", error);
-  }
+  audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  initializeMediaRecorder();
+  mediaRecorder.start();
 }
+
 joinRoomBtn.addEventListener("click", handleWelcome);
 createRoomBtn.addEventListener("click", handleCreateNewRoom);
 
-// Socket code
 socket.on("user_list", (idList) => {
   console.log("user_list = " + idList.toString());
 
@@ -238,15 +224,19 @@ socket.on("newStream", (id) => {
 
 socket.on("chatMessage", (message, sendId,) => {
   const li = document.createElement("li");
-  li.textContent = `${sendId} : ${message}`;
+  li.textContent = `${message}`;
   chatMessages.appendChild(li);
 });
 
+// DB에서 가져온 userName
+socket.on("userNo_Name", (userName) => {
+  console.log('서버로부터 받은 사용자 이름 : ' + userName);
+});
 
 
 sendMessageForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const input = chatDiv.querySelector("#messageInput"); // "#messageInput"으로 변경해야 합니다.
+  const input = chatDiv.querySelector("#messageInput");
   const value = input.value;
   socket.emit("new_message", value, roomName, () => {
     addMessage(`You : ${value}`);
@@ -275,15 +265,11 @@ endRoomBtn.addEventListener("click", () => {
   welcomeDiv.hidden = false;
 });
 
-boomBtn.addEventListener("click", () => {
-  console.log("hello")
-});
-
 async function createSendOffer() {
   console.log(`createSendOffer`);
   const offer = await sendPeer.createOffer({
-    offerToReceiveVideo: true,
-    offerToReceiveAudio: true,
+    offerToReceiveVideo: false,
+    offerToReceiveAudio: false,
   });
 
   sendPeer.setLocalDescription(offer);
@@ -332,6 +318,7 @@ function createRecvPeer(sendId) {
       ],
     })
   );
+  console.log("hi hello");
 
   recvPeerMap.get(sendId).addEventListener("icecandidate", (data) => {
     socket.emit("recvCandidate", data.candidate, sendId);
@@ -339,21 +326,6 @@ function createRecvPeer(sendId) {
   recvPeerMap.get(sendId).addEventListener("track", (data) => {
     handleTrack(data, sendId);
   });
-
-
-
-
-  // 카메라랑 마이크가 잘 가져와졌는지
-  navigator.mediaDevices.enumerateDevices()
-    .then(devices => {
-      devices.forEach(device => {
-        console.log(device.kind + ": " + device.label +
-          " id = " + device.deviceId);
-      });
-    })
-    .catch(err => {
-      console.log(err.name + ": " + err.message);
-    });
 }
 
 async function createRecvOffer(sendId) {
@@ -390,12 +362,21 @@ socket.on("bye", (fromId) => {
 });
 
 boomBtn.addEventListener("click", () => {
+
+
   // 1. 녹음 중지
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
   }
   // 2. 서버에 회의방 퇴장 이벤트 보내기
   socket.emit("leaveRoom", roomName); // roomName은 현재 회의방 이름입니다.
+  callDiv.removeChild(roomNameDiv);
+  recvPeerMap.forEach((recvPeer, sendId) => {
+    const videoElement = document.getElementById(sendId);
+    if (videoElement) {
+      otherStreamDiv.removeChild(videoElement);
+    }
+  });
   // 3. 카메라와 비디오 끄기
   myStream.getTracks().forEach((track) => {
     track.stop(); // 각 트랙을 정지합니다.
@@ -414,18 +395,36 @@ socket.on("exit_all", () => {
     mediaRecorder.stop();
   }
 
+  roomName = "";
 
   alert("회의가 종료됐습니다.");
-  // 3. 카메라와 비디오 끄기
+
+  // 모든 비디오 엘리먼트 제거
+  recvPeerMap.forEach((recvPeer, sendId) => {
+    const videoElement = document.getElementById(sendId);
+    if (videoElement) {
+      otherStreamDiv.removeChild(videoElement);
+    }
+    recvPeer.close(); // 해당 PeerConnection도 닫아줍니다.
+  });
+
+  recvPeerMap.clear(); // Map을 비워줍니다.
+
+
+  // 카메라와 비디오 끄기
   myStream.getTracks().forEach((track) => {
     track.stop(); // 각 트랙을 정지합니다.
   });
+
   myFace.srcObject = null; // 화면에서 비디오 스트림을 제거합니다.
-  // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
+
+
+  // UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
   callDiv.hidden = true;
   chatDiv.hidden = true;
   welcomeDiv.hidden = false;
 });
+
 
 window.addEventListener('beforeunload', (event) => {
   // 녹음 중인 경우 녹음을 중지합니다.
@@ -463,7 +462,7 @@ function handleTrack(data, sendId) {
 
   console.log(`handleTrack from ${sendId}`);
   video.srcObject = data.streams[0];
-  
+
   if (video.id === "myFace") {
     video.volume = 0;
   }

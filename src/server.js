@@ -4,15 +4,52 @@ import express from "express";
 import wrtc from "wrtc";
 import path from "path";
 
-
 const app = express();
+
 // app.set("view engine", "pug");
 app.get("/", (_, res) => res.sendFile(path.join(__dirname, "views", "home.html")));
 app.set("views", __dirname + "/views");
 app.use("/public", express.static(__dirname + "/public"));
 app.use("/img", express.static(path.join(__dirname, "views", "img")));
 app.use("/css", express.static(path.join(__dirname, "views", "css")));
+app.use("/js", express.static(path.join(__dirname, "views", "js")));
 app.get("/", (_, res) => res.render("home"));
+app.get("/", (req, res) => {
+  const userNo = req.query.userNo;
+  // Oracle 데이터베이스 연결
+  oracledb.getConnection(dbConfig, (err, connection) => {
+    if (err) {
+      console.error("Error connecting to Oracle database:", err);
+      return res.status(500).json({ error: "Database connection error" });
+    }
+    // SQL 쿼리를 생성
+    const query = "SELECT NAME FROM USER3 WHERE NO = :userNo"; // USER3 테이블과 필드 이름에 주의
+    // SQL 바인딩 변수 설정
+    const binds = [userNo];
+    // SQL 쿼리 실행
+    connection.execute(query, binds, (err, result) => {
+      if (err) {
+        console.error("Error executing SQL query:", err);
+        connection.release();
+        return res.status(500).json({ error: "Database query error" });
+      }
+      // 결과에서 사용자 이름 추출
+      if (result.rows.length > 0) {
+        const userName = result.rows[0][0];
+        // 클라이언트로 사용자 이름 전송
+        res.json({ userName: userName });
+        socket.emit("userNo_Name", userName);
+      } else {
+        res.status(404).json({ error: "User not found" });
+      }
+      // 연결 해제
+      connection.release();
+    });
+  });
+});
+
+
+
 app.get("/*", (_, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
@@ -32,6 +69,11 @@ let streamMap = new Map();
 
 const fs = require("fs");
 
+let dateMap = new Map();
+
+let userDateMap = new Map(); // 유저가 들어온 date
+
+let distanceDate; // date 차이점
 
 
 // 디렉토리 경로 설정
@@ -49,11 +91,20 @@ function getUserRoomList(socket) {
 }
 
 
+
 wsServer.on("connection", (socket) => {
   const nickname = socket.id;
-  socket.on("join_room", (roomName) => {
+  socket.on("join_room", (roomName, date) => {
     let room = wsServer.sockets.adapter.rooms.get(roomName);
     let idList = room ? [...room] : [];
+
+    if (dateMap.has(roomName)) {
+      distanceDate = date - dateMap.get(roomName);
+      userDateMap.set(socket.id, distanceDate);
+    } else {
+      dateMap.set(roomName, date);
+      userDateMap.set(socket.id, 0);
+    }
 
     console.log(idList);
     socket.emit("user_list", idList);
@@ -132,27 +183,29 @@ wsServer.on("connection", (socket) => {
     const uniqueFileName = `${Date.now()}.wav`;
     const audioFilePath = path.join(roomDir, uniqueFileName);
 
-    // 오디오 데이터를 파일로 저장
-    fs.writeFile(audioFilePath, audioData, "binary", (err) => {
+    // silence 데이터 생성 (패딩)
+    const silenceDuration = userDateMap.get(socket.id); // 패딩으로 사용할 시간 (milliseconds)
+    console.log(uniqueFileName + "는 " + silenceDuration + "만큼 패딩");
+    const silenceSampleRate = 44100; // 오디오 샘플 속도 (예: 44100 Hz)
+    const silenceData = Buffer.alloc(silenceDuration * silenceSampleRate * 2); // 2는 16 비트 모노 오디오 데이터를 의미합니다
+
+    // silence 데이터를 파일에 추가
+    fs.writeFileSync(audioFilePath, silenceData);
+    fs.appendFileSync(audioFilePath, audioData, "binary", (err) => {
       if (err) {
         console.error("오디오 파일 저장 중 오류 발생:", err);
         return;
       }
       console.log("오디오 파일 저장 완료:", uniqueFileName);
-
-      // 파일 저장이 완료되면 클라이언트에 응답 전송 또는 다른 작업 수행
-      // 예를 들어, 저장된 파일 경로 등을 클라이언트로 전달할 수 있음
     });
   });
 
   // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
   socket.on("new_message", (msg, room, done) => {
-    console.log("cex");
     // room에 연결된 모든 클라이언트에게 메시지를 전달
-    socket.to(room).emit("chatMessage", msg, nickname);
+    socket.to(room).emit("chatMessage", msg);
     // 클라이언트에게 완료 신호를 보내기 위해 done() 호출
     done();
-
   });
 
   socket.on("leaveRoom", () => {
@@ -176,7 +229,6 @@ wsServer.on("connection", (socket) => {
         userSocket.leave(roomName);
       });
     });
-
   });
 
   function createRecvPeer() {
@@ -200,15 +252,12 @@ wsServer.on("connection", (socket) => {
       console.log("recvPeer track");
       let rooms = getUserRoomList(socket);
       console.log(rooms);
-
       if (!streamMap.has(rooms[0])) {
         streamMap.set(rooms[0], new Map());
       }
-
       if (streamMap.get(rooms[0]).has(socket.id)) {
         return;
       }
-
       // Stream 정보를 추가하고 다른 클라에게 알린다.
       streamMap.get(rooms[0]).set(socket.id, data.streams[0]);
       socket.to(rooms[0]).emit("newStream", socket.id);
@@ -276,5 +325,32 @@ wsServer.on("connection", (socket) => {
   }
 });
 
+let connection;
+var oracledb= require('oracledb');
+
+(async function(){
+  try{
+    connection = await oracledb.getConnection({
+      user : 'system',
+      password : '3575',
+      connectionString : 'localhost:1521/xe'
+
+    });
+    console.log("Successfully connected to Oracle!")
+
+  }catch(err){
+    console.log("Error: ", err);
+  }finally{
+    if(connection){
+      try{
+        await connection.close();
+      }catch(err){
+        console.log("Error when closing the database connection: ", err);
+      }
+    }
+  }
+})()
+
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 httpServer.listen(3000, handleListen);
+
