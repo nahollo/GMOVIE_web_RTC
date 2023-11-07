@@ -3,7 +3,7 @@ import SocketIO from "socket.io";
 import express from "express";
 import wrtc from "wrtc";
 import path from "path";
-
+const ffmpeg = require('fluent-ffmpeg');
 const app = express();
 
 // app.set("view engine", "pug");
@@ -14,39 +14,6 @@ app.use("/img", express.static(path.join(__dirname, "views", "img")));
 app.use("/css", express.static(path.join(__dirname, "views", "css")));
 app.use("/js", express.static(path.join(__dirname, "views", "js")));
 app.get("/", (_, res) => res.render("home"));
-app.get("/", (req, res) => {
-  const userNo = req.query.userNo;
-  // Oracle 데이터베이스 연결
-  oracledb.getConnection(dbConfig, (err, connection) => {
-    if (err) {
-      console.error("Error connecting to Oracle database:", err);
-      return res.status(500).json({ error: "Database connection error" });
-    }
-    // SQL 쿼리를 생성
-    const query = "SELECT NAME FROM USER3 WHERE NO = :userNo"; // USER3 테이블과 필드 이름에 주의
-    // SQL 바인딩 변수 설정
-    const binds = [userNo];
-    // SQL 쿼리 실행
-    connection.execute(query, binds, (err, result) => {
-      if (err) {
-        console.error("Error executing SQL query:", err);
-        connection.release();
-        return res.status(500).json({ error: "Database query error" });
-      }
-      // 결과에서 사용자 이름 추출
-      if (result.rows.length > 0) {
-        const userName = result.rows[0][0];
-        // 클라이언트로 사용자 이름 전송
-        res.json({ userName: userName });
-        socket.emit("userNo_Name", userName);
-      } else {
-        res.status(404).json({ error: "User not found" });
-      }
-      // 연결 해제
-      connection.release();
-    });
-  });
-});
 
 
 
@@ -162,43 +129,127 @@ wsServer.on("connection", (socket) => {
       recvPeerMap.get(id).close();
       recvPeerMap.delete(id);
     }
-
     rooms.forEach((room) => {
       socket.to(room).emit("bye", id);
-
       if (streamMap.has(room)) {
         streamMap.get(room).delete(id);
       }
     });
   });
-  socket.on("audioData", (audioData) => {
-    const roomDir = path.join(audioDataDir, socket.roomName);
 
-    // 방 디렉토리가 없는 경우 생성
-    if (!fs.existsSync(roomDir)) {
-      fs.mkdirSync(roomDir);
-    }
 
-    // 고유한 파일 이름 생성
-    const uniqueFileName = `${Date.now()}.wav`;
-    const audioFilePath = path.join(roomDir, uniqueFileName);
+  const createSilenceAudio = (silenceAudioFile, silenceDuration) => {
+    return new Promise((resolve, reject) => {
+        const silenceAudio = ffmpeg()
+            .input('anullsrc=r=48000:cl=mono')
+            .inputFormat('lavfi')
+            .audioChannels(1)
+            .audioCodec('pcm_s16le')
+            .audioFilters(`atrim=0:${silenceDuration}`)
+            .output(silenceAudioFile);
 
-    // silence 데이터 생성 (패딩)
-    const silenceDuration = userDateMap.get(socket.id); // 패딩으로 사용할 시간 (milliseconds)
-    console.log(uniqueFileName + "는 " + silenceDuration + "만큼 패딩");
-    const silenceSampleRate = 44100; // 오디오 샘플 속도 (예: 44100 Hz)
-    const silenceData = Buffer.alloc(silenceDuration * silenceSampleRate * 2); // 2는 16 비트 모노 오디오 데이터를 의미합니다
+        silenceAudio.on('end', () => {
+            console.log(`무음을 ${silenceDuration}초만큼 무음 파일에 추가하였습니다.`);
+            resolve();
+        });
 
-    // silence 데이터를 파일에 추가
-    fs.writeFileSync(audioFilePath, silenceData);
-    fs.appendFileSync(audioFilePath, audioData, "binary", (err) => {
-      if (err) {
-        console.error("오디오 파일 저장 중 오류 발생:", err);
-        return;
-      }
-      console.log("오디오 파일 저장 완료:", uniqueFileName);
+        silenceAudio.on('error', (err) => {
+            console.error('무음 데이터 생성 중 오류 발생:', err);
+            reject(err);
+        });
+
+        silenceAudio.run();
     });
-  });
+}
+
+socket.on("audioData", async (audioDataArrayBuffer) => {
+  const roomDir = path.join(audioDataDir, socket.roomName);
+  const date = Date.now();
+  const dateDir = path.join(roomDir, date.toString());
+  const audioFilePath = path.join(roomDir, `${date}.wav`);
+  const silenceDuration = userDateMap.get(socket.id) / 1000; // 무음으로 사용할 시간 (milliseconds)
+
+  if (!fs.existsSync(roomDir)) {
+      fs.mkdirSync(roomDir);
+  }
+
+  if (!fs.existsSync(dateDir)) {
+      fs.mkdirSync(dateDir);
+  }
+
+  const silenceAudioFile = path.join(dateDir, `${date}_silence.wav`);
+  const audioDataFile = path.join(dateDir, `${date}.wav`);
+
+  if (silenceDuration > 0) {
+      try {
+          await createSilenceAudio(silenceAudioFile, silenceDuration);
+
+          fs.writeFileSync(audioDataFile, Buffer.from(audioDataArrayBuffer));
+
+          setTimeout(() => {
+              const combinedAudio = ffmpeg()
+                  .input(silenceAudioFile)
+                  .input(audioDataFile)
+                  .complexFilter([
+                      '[0:a][1:a]concat=n=2:v=0:a=1[out]'
+                  ], ['out'])
+                  .output(audioFilePath)
+                  .on('end', () => {
+                      console.log('오디오 파일에 무음 데이터를 추가하고 저장했습니다.');
+                  })
+                  .on('error', (err) => {
+                      console.error('오디오 파일 처리 중 오류 발생:', err);
+                  });
+
+              combinedAudio.run();
+          }, 10000);
+      } catch (err) {
+          console.error('무음 데이터 생성 중 오류 발생:', err);
+      }
+  } else {
+      fs.writeFileSync(audioFilePath, Buffer.from(audioDataArrayBuffer));
+      console.log("오디오 파일 저장 완료:", `${date}.wav`);
+  }
+});
+
+
+  
+  // WAV 파일 헤더 생성 함수
+  function createWavHeader(dataLength, sampleRate, sampleSize) {
+    const header = Buffer.alloc(44);
+  
+    // Chunk ID (RIFF)
+    header.write("RIFF", 0);
+    // Chunk Size
+    header.writeUInt32LE(dataLength + 36, 4);
+    // Format (WAVE)
+    header.write("WAVE", 8);
+    // Subchunk1 ID (fmt )
+    header.write("fmt ", 12);
+    // Subchunk1 Size (16)
+    header.writeUInt32LE(16, 16);
+    // Audio Format (1 for PCM)
+    header.writeUInt16LE(1, 20);
+    // Num Channels (1 for mono, 2 for stereo)
+    header.writeUInt16LE(1, 22);
+    // Sample Rate
+    header.writeUInt32LE(sampleRate, 24);
+    // Byte Rate
+    header.writeUInt32LE(sampleRate * sampleSize, 28);
+    // Block Align
+    header.writeUInt16LE(sampleSize, 32);
+    // Bits per Sample
+    header.writeUInt16LE(sampleSize * 8, 34);
+    // Subchunk2 ID (data)
+    header.write("data", 36);
+    // Subchunk2 Size
+    header.writeUInt32LE(dataLength, 40);
+  
+    return header;
+  }
+  
+
+
 
   // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
   socket.on("new_message", (msg, room, done) => {
@@ -325,31 +376,31 @@ wsServer.on("connection", (socket) => {
   }
 });
 
-let connection;
-var oracledb= require('oracledb');
+// let connection;
+// var oracledb= require('oracledb');
 
-(async function(){
-  try{
-    connection = await oracledb.getConnection({
-      user : 'system',
-      password : '3575',
-      connectionString : 'localhost:1521/xe'
+// (async function(){
+//   try{
+//     connection = await oracledb.getConnection({
+//       user : 'system',
+//       password : '3575',
+//       connectionString : 'localhost:1521/xe'
 
-    });
-    console.log("Successfully connected to Oracle!")
+//     });
+//     console.log("Successfully connected to Oracle!")
 
-  }catch(err){
-    console.log("Error: ", err);
-  }finally{
-    if(connection){
-      try{
-        await connection.close();
-      }catch(err){
-        console.log("Error when closing the database connection: ", err);
-      }
-    }
-  }
-})()
+//   }catch(err){
+//     console.log("Error: ", err);
+//   }finally{
+//     if(connection){
+//       try{
+//         await connection.close();
+//       }catch(err){
+//         console.log("Error when closing the database connection: ", err);
+//       }
+//     }
+//   }
+// })()
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 httpServer.listen(3000, handleListen);

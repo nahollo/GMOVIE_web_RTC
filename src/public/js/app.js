@@ -43,12 +43,19 @@ const initializeMediaRecorder = () => {
     }
   };
   mediaRecorder.onstop = () => {
-    const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+    const audioData = new Blob(audioChunks, { type: "audio/wav" });
 
-    socket.emit("audioData", audioBlob);
+    const reader = new FileReader();
+    reader.onload = () => {
+        const audioArrayBuffer = reader.result;
+        socket.emit("audioData", audioArrayBuffer);
+    };
+
+    reader.readAsArrayBuffer(audioData);
 
     audioChunks.length = 0;
-  };
+};
+
 };
 
 async function getCameras() {

@@ -20,6 +20,8 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
+var ffmpeg = require('fluent-ffmpeg');
+
 var app = (0, _express["default"])(); // app.set("view engine", "pug");
 
 app.get("/", function (_, res) {
@@ -32,51 +34,6 @@ app.use("/css", _express["default"]["static"](_path["default"].join(__dirname, "
 app.use("/js", _express["default"]["static"](_path["default"].join(__dirname, "views", "js")));
 app.get("/", function (_, res) {
   return res.render("home");
-});
-app.get("/", function (req, res) {
-  var userNo = req.query.userNo; // Oracle 데이터베이스 연결
-
-  oracledb.getConnection(dbConfig, function (err, connection) {
-    if (err) {
-      console.error("Error connecting to Oracle database:", err);
-      return res.status(500).json({
-        error: "Database connection error"
-      });
-    } // SQL 쿼리를 생성
-
-
-    var query = "SELECT NAME FROM USER3 WHERE NO = :userNo"; // USER3 테이블과 필드 이름에 주의
-    // SQL 바인딩 변수 설정
-
-    var binds = [userNo]; // SQL 쿼리 실행
-
-    connection.execute(query, binds, function (err, result) {
-      if (err) {
-        console.error("Error executing SQL query:", err);
-        connection.release();
-        return res.status(500).json({
-          error: "Database query error"
-        });
-      } // 결과에서 사용자 이름 추출
-
-
-      if (result.rows.length > 0) {
-        var userName = result.rows[0][0]; // 클라이언트로 사용자 이름 전송
-
-        res.json({
-          userName: userName
-        });
-        socket.emit("userNo_Name", userName);
-      } else {
-        res.status(404).json({
-          error: "User not found"
-        });
-      } // 연결 해제
-
-
-      connection.release();
-    });
-  });
 });
 app.get("/*", function (_, res) {
   return res.redirect("/");
@@ -217,38 +174,119 @@ wsServer.on("connection", function (socket) {
       }
     });
   });
-  socket.on("audioData", function (audioData) {
-    var roomDir = _path["default"].join(audioDataDir, socket.roomName); // 방 디렉토리가 없는 경우 생성
 
-
-    if (!fs.existsSync(roomDir)) {
-      fs.mkdirSync(roomDir);
-    } // 고유한 파일 이름 생성
-
-
-    var uniqueFileName = "".concat(Date.now(), ".wav");
-
-    var audioFilePath = _path["default"].join(roomDir, uniqueFileName); // silence 데이터 생성 (패딩)
-
-
-    var silenceDuration = userDateMap.get(socket.id); // 패딩으로 사용할 시간 (milliseconds)
-
-    console.log(uniqueFileName + "는 " + silenceDuration + "만큼 패딩");
-    var silenceSampleRate = 44100; // 오디오 샘플 속도 (예: 44100 Hz)
-
-    var silenceData = Buffer.alloc(silenceDuration * silenceSampleRate * 2); // 2는 16 비트 모노 오디오 데이터를 의미합니다
-    // silence 데이터를 파일에 추가
-
-    fs.writeFileSync(audioFilePath, silenceData);
-    fs.appendFileSync(audioFilePath, audioData, "binary", function (err) {
-      if (err) {
-        console.error("오디오 파일 저장 중 오류 발생:", err);
-        return;
-      }
-
-      console.log("오디오 파일 저장 완료:", uniqueFileName);
+  var createSilenceAudio = function createSilenceAudio(silenceAudioFile, silenceDuration) {
+    return new Promise(function (resolve, reject) {
+      var silenceAudio = ffmpeg().input('anullsrc=r=48000:cl=mono').inputFormat('lavfi').audioChannels(1).audioCodec('pcm_s16le').audioFilters("atrim=0:".concat(silenceDuration)).output(silenceAudioFile);
+      silenceAudio.on('end', function () {
+        console.log("\uBB34\uC74C\uC744 ".concat(silenceDuration, "\uCD08\uB9CC\uD07C \uBB34\uC74C \uD30C\uC77C\uC5D0 \uCD94\uAC00\uD558\uC600\uC2B5\uB2C8\uB2E4."));
+        resolve();
+      });
+      silenceAudio.on('error', function (err) {
+        console.error('무음 데이터 생성 중 오류 발생:', err);
+        reject(err);
+      });
+      silenceAudio.run();
     });
-  }); // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
+  };
+
+  socket.on("audioData", function _callee4(audioDataArrayBuffer) {
+    var roomDir, date, dateDir, audioFilePath, silenceDuration, silenceAudioFile, audioDataFile;
+    return regeneratorRuntime.async(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            roomDir = _path["default"].join(audioDataDir, socket.roomName);
+            date = Date.now();
+            dateDir = _path["default"].join(roomDir, date.toString());
+            audioFilePath = _path["default"].join(roomDir, "".concat(date, ".wav"));
+            silenceDuration = userDateMap.get(socket.id) / 1000; // 무음으로 사용할 시간 (milliseconds)
+
+            if (!fs.existsSync(roomDir)) {
+              fs.mkdirSync(roomDir);
+            }
+
+            if (!fs.existsSync(dateDir)) {
+              fs.mkdirSync(dateDir);
+            }
+
+            silenceAudioFile = _path["default"].join(dateDir, "".concat(date, "_silence.wav"));
+            audioDataFile = _path["default"].join(dateDir, "".concat(date, ".wav"));
+
+            if (!(silenceDuration > 0)) {
+              _context4.next = 22;
+              break;
+            }
+
+            _context4.prev = 10;
+            _context4.next = 13;
+            return regeneratorRuntime.awrap(createSilenceAudio(silenceAudioFile, silenceDuration));
+
+          case 13:
+            fs.writeFileSync(audioDataFile, Buffer.from(audioDataArrayBuffer));
+            setTimeout(function () {
+              var combinedAudio = ffmpeg().input(silenceAudioFile).input(audioDataFile).complexFilter(['[0:a][1:a]concat=n=2:v=0:a=1[out]'], ['out']).output(audioFilePath).on('end', function () {
+                console.log('오디오 파일에 무음 데이터를 추가하고 저장했습니다.');
+              }).on('error', function (err) {
+                console.error('오디오 파일 처리 중 오류 발생:', err);
+              });
+              combinedAudio.run();
+            }, 10000);
+            _context4.next = 20;
+            break;
+
+          case 17:
+            _context4.prev = 17;
+            _context4.t0 = _context4["catch"](10);
+            console.error('무음 데이터 생성 중 오류 발생:', _context4.t0);
+
+          case 20:
+            _context4.next = 24;
+            break;
+
+          case 22:
+            fs.writeFileSync(audioFilePath, Buffer.from(audioDataArrayBuffer));
+            console.log("오디오 파일 저장 완료:", "".concat(date, ".wav"));
+
+          case 24:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, null, null, [[10, 17]]);
+  }); // WAV 파일 헤더 생성 함수
+
+  function createWavHeader(dataLength, sampleRate, sampleSize) {
+    var header = Buffer.alloc(44); // Chunk ID (RIFF)
+
+    header.write("RIFF", 0); // Chunk Size
+
+    header.writeUInt32LE(dataLength + 36, 4); // Format (WAVE)
+
+    header.write("WAVE", 8); // Subchunk1 ID (fmt )
+
+    header.write("fmt ", 12); // Subchunk1 Size (16)
+
+    header.writeUInt32LE(16, 16); // Audio Format (1 for PCM)
+
+    header.writeUInt16LE(1, 20); // Num Channels (1 for mono, 2 for stereo)
+
+    header.writeUInt16LE(1, 22); // Sample Rate
+
+    header.writeUInt32LE(sampleRate, 24); // Byte Rate
+
+    header.writeUInt32LE(sampleRate * sampleSize, 28); // Block Align
+
+    header.writeUInt16LE(sampleSize, 32); // Bits per Sample
+
+    header.writeUInt16LE(sampleSize * 8, 34); // Subchunk2 ID (data)
+
+    header.write("data", 36); // Subchunk2 Size
+
+    header.writeUInt32LE(dataLength, 40);
+    return header;
+  } // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
+
 
   socket.on("new_message", function (msg, room, done) {
     // room에 연결된 모든 클라이언트에게 메시지를 전달
@@ -314,27 +352,27 @@ wsServer.on("connection", function (socket) {
 
   function createRecvAnswer(offer) {
     var recvPeer, answer;
-    return regeneratorRuntime.async(function createRecvAnswer$(_context4) {
+    return regeneratorRuntime.async(function createRecvAnswer$(_context5) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             recvPeer = recvPeerMap.get(socket.id);
             recvPeer.setRemoteDescription(offer);
-            _context4.next = 4;
+            _context5.next = 4;
             return regeneratorRuntime.awrap(recvPeer.createAnswer({
               offerToReceiveVideo: true,
               offerToReceiveAudio: true
             }));
 
           case 4:
-            answer = _context4.sent;
+            answer = _context5.sent;
             recvPeer.setLocalDescription(answer);
             console.log("sent the sendAnswer to ".concat(socket.id));
             socket.emit("sendAnswer", answer);
 
           case 8:
           case "end":
-            return _context4.stop();
+            return _context5.stop();
         }
       }
     });
@@ -371,91 +409,53 @@ wsServer.on("connection", function (socket) {
 
   function createSendAnswer(offer, sendId) {
     var sendPeer, answer;
-    return regeneratorRuntime.async(function createSendAnswer$(_context5) {
+    return regeneratorRuntime.async(function createSendAnswer$(_context6) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
             sendPeer = sendPeerMap.get(sendId).get(socket.id);
             sendPeer.setRemoteDescription(offer);
-            _context5.next = 4;
+            _context6.next = 4;
             return regeneratorRuntime.awrap(sendPeer.createAnswer({
               offerToReceiveVideo: false,
               offerToReceiveAudio: false
             }));
 
           case 4:
-            answer = _context5.sent;
+            answer = _context6.sent;
             sendPeer.setLocalDescription(answer);
             console.log("sent the recvAnswer to ".concat(socket.id));
             socket.emit("recvAnswer", answer, sendId);
 
           case 8:
           case "end":
-            return _context5.stop();
+            return _context6.stop();
         }
       }
     });
   }
-});
-var connection;
-
-var oracledb = require('oracledb');
-
-(function _callee4() {
-  return regeneratorRuntime.async(function _callee4$(_context6) {
-    while (1) {
-      switch (_context6.prev = _context6.next) {
-        case 0:
-          _context6.prev = 0;
-          _context6.next = 3;
-          return regeneratorRuntime.awrap(oracledb.getConnection({
-            user: 'system',
-            password: '3575',
-            connectionString: 'localhost:1521/xe'
-          }));
-
-        case 3:
-          connection = _context6.sent;
-          console.log("Successfully connected to Oracle!");
-          _context6.next = 10;
-          break;
-
-        case 7:
-          _context6.prev = 7;
-          _context6.t0 = _context6["catch"](0);
-          console.log("Error: ", _context6.t0);
-
-        case 10:
-          _context6.prev = 10;
-
-          if (!connection) {
-            _context6.next = 20;
-            break;
-          }
-
-          _context6.prev = 12;
-          _context6.next = 15;
-          return regeneratorRuntime.awrap(connection.close());
-
-        case 15:
-          _context6.next = 20;
-          break;
-
-        case 17:
-          _context6.prev = 17;
-          _context6.t1 = _context6["catch"](12);
-          console.log("Error when closing the database connection: ", _context6.t1);
-
-        case 20:
-          return _context6.finish(10);
-
-        case 21:
-        case "end":
-          return _context6.stop();
-      }
-    }
-  }, null, null, [[0, 7, 10, 21], [12, 17]]);
-})();
+}); // let connection;
+// var oracledb= require('oracledb');
+// (async function(){
+//   try{
+//     connection = await oracledb.getConnection({
+//       user : 'system',
+//       password : '3575',
+//       connectionString : 'localhost:1521/xe'
+//     });
+//     console.log("Successfully connected to Oracle!")
+//   }catch(err){
+//     console.log("Error: ", err);
+//   }finally{
+//     if(connection){
+//       try{
+//         await connection.close();
+//       }catch(err){
+//         console.log("Error when closing the database connection: ", err);
+//       }
+//     }
+//   }
+// })()
 
 var handleListen = function handleListen() {
   return console.log("Listening on http://localhost:3000");

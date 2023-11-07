@@ -18,10 +18,13 @@
     "@socket.io/admin-ui": "^0.5.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "fluent-ffmpeg": "^2.1.2",
     "localtunnel": "^2.0.2",
     "oracledb": "^6.2.0",
     "pug": "^3.0.2",
     "socket.io": "^4.7.2",
+    "wav": "^1.0.2",
+    "wavefile": "^11.0.0",
     "wrtc": "^0.4.7",
     "ws": "^8.14.1"
   }

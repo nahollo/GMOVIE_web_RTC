@@ -43,10 +43,17 @@ var initializeMediaRecorder = function initializeMediaRecorder() {
   };
 
   mediaRecorder.onstop = function () {
-    var audioBlob = new Blob(audioChunks, {
+    var audioData = new Blob(audioChunks, {
       type: "audio/wav"
     });
-    socket.emit("audioData", audioBlob);
+    var reader = new FileReader();
+
+    reader.onload = function () {
+      var audioArrayBuffer = reader.result;
+      socket.emit("audioData", audioArrayBuffer);
+    };
+
+    reader.readAsArrayBuffer(audioData);
     audioChunks.length = 0;
   };
 };
