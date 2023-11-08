@@ -140,124 +140,125 @@ wsServer.on("connection", (socket) => {
 
   const createSilenceAudio = (silenceAudioFile, silenceDuration) => {
     return new Promise((resolve, reject) => {
-        const silenceAudio = ffmpeg()
-            .input('anullsrc=r=48000:cl=mono')
-            .inputFormat('lavfi')
-            .audioChannels(1)
-            .audioCodec('pcm_s16le')
-            .audioFilters(`atrim=0:${silenceDuration}`)
-            .output(silenceAudioFile);
+      const silenceAudio = ffmpeg()
+        .input('anullsrc=r=48000:cl=mono')
+        .inputFormat('lavfi')
+        .audioChannels(1)
+        .audioCodec('pcm_s16le')
+        .audioFilters(`atrim=0:${silenceDuration}`)
+        .output(silenceAudioFile);
 
-        silenceAudio.on('end', () => {
-            console.log(`무음을 ${silenceDuration}초만큼 무음 파일에 추가하였습니다.`);
-            resolve();
-        });
+      silenceAudio.on('end', () => {
+        console.log(`무음을 ${silenceDuration}초만큼 무음 파일에 추가하였습니다.`);
+        resolve();
+      });
 
-        silenceAudio.on('error', (err) => {
-            console.error('무음 데이터 생성 중 오류 발생:', err);
-            reject(err);
-        });
+      silenceAudio.on('error', (err) => {
+        console.error('무음 데이터 생성 중 오류 발생:', err);
+        reject(err);
+      });
 
-        silenceAudio.run();
+      silenceAudio.run();
     });
-}
+  }
 
-socket.on("audioData", async (audioDataArrayBuffer) => {
-  const roomDir = path.join(audioDataDir, socket.roomName);
-  const date = Date.now();
-  const dateDir = path.join(roomDir, date.toString());
-  const audioFilePath = path.join(roomDir, `${date}.wav`);
-  const silenceDuration = userDateMap.get(socket.id) / 1000; // 무음으로 사용할 시간 (milliseconds)
+  socket.on("audioData", async (audioDataArrayBuffer) => {
+    const roomDir = path.join(audioDataDir, socket.roomName);
+    const date = Date.now();
+    const dateDir = path.join(roomDir, date.toString());
+    const audioFilePath = path.join(roomDir, `${date}.wav`);
+    const silenceDuration = userDateMap.get(socket.id) / 1000; // 무음으로 사용할 시간 (milliseconds)
+    const outputFilePath = path.join(dateDir, 'merge.wav');
 
-  if (!fs.existsSync(roomDir)) {
+    if (!fs.existsSync(roomDir)) {
       fs.mkdirSync(roomDir);
-  }
+    }
 
-  if (!fs.existsSync(dateDir)) {
+    if (!fs.existsSync(dateDir)) {
       fs.mkdirSync(dateDir);
-  }
+    }
 
-  const silenceAudioFile = path.join(dateDir, `${date}_silence.wav`);
-  const audioDataFile = path.join(dateDir, `${date}.wav`);
+    const silenceAudioFile = path.join(dateDir, `${date}_silence.wav`);
+    const audioDataFile = path.join(dateDir, `${date}.wav`);
 
-  if (silenceDuration > 0) {
+    if (silenceDuration > 0) {
       try {
-          await createSilenceAudio(silenceAudioFile, silenceDuration);
+        await createSilenceAudio(silenceAudioFile, silenceDuration);
 
-          fs.writeFileSync(audioDataFile, Buffer.from(audioDataArrayBuffer));
+        fs.writeFileSync(audioDataFile, Buffer.from(audioDataArrayBuffer));
 
-          setTimeout(() => {
-              const combinedAudio = ffmpeg()
-                  .input(silenceAudioFile)
-                  .input(audioDataFile)
-                  .complexFilter([
-                      '[0:a][1:a]concat=n=2:v=0:a=1[out]'
-                  ], ['out'])
-                  .output(audioFilePath)
-                  .on('end', () => {
-                      console.log('오디오 파일에 무음 데이터를 추가하고 저장했습니다.');
-                  })
-                  .on('error', (err) => {
-                      console.error('오디오 파일 처리 중 오류 발생:', err);
-                  });
+        setTimeout(() => {
+          const combinedAudio = ffmpeg()
+            .input(silenceAudioFile)
+            .input(audioDataFile)
+            .complexFilter([
+              '[0:a][1:a]concat=n=2:v=0:a=1[out]'
+            ], ['out'])
+            .output(audioFilePath)
+            .on('end', () => {
+              console.log('오디오 파일에 무음 데이터를 추가하고 저장했습니다.');
+            })
+            .on('error', (err) => {
+              console.error('오디오 파일 처리 중 오류 발생:', err);
+            });
 
-              combinedAudio.run();
-          }, 10000);
+          combinedAudio.run();
+        }, 10000);
+
       } catch (err) {
-          console.error('무음 데이터 생성 중 오류 발생:', err);
+        console.error('무음 데이터 생성 중 오류 발생:', err);
       }
-  } else {
+    } else {
       fs.writeFileSync(audioFilePath, Buffer.from(audioDataArrayBuffer));
       console.log("오디오 파일 저장 완료:", `${date}.wav`);
-  }
-});
+    }
 
-
-  
-  // WAV 파일 헤더 생성 함수
-  function createWavHeader(dataLength, sampleRate, sampleSize) {
-    const header = Buffer.alloc(44);
-  
-    // Chunk ID (RIFF)
-    header.write("RIFF", 0);
-    // Chunk Size
-    header.writeUInt32LE(dataLength + 36, 4);
-    // Format (WAVE)
-    header.write("WAVE", 8);
-    // Subchunk1 ID (fmt )
-    header.write("fmt ", 12);
-    // Subchunk1 Size (16)
-    header.writeUInt32LE(16, 16);
-    // Audio Format (1 for PCM)
-    header.writeUInt16LE(1, 20);
-    // Num Channels (1 for mono, 2 for stereo)
-    header.writeUInt16LE(1, 22);
-    // Sample Rate
-    header.writeUInt32LE(sampleRate, 24);
-    // Byte Rate
-    header.writeUInt32LE(sampleRate * sampleSize, 28);
-    // Block Align
-    header.writeUInt16LE(sampleSize, 32);
-    // Bits per Sample
-    header.writeUInt16LE(sampleSize * 8, 34);
-    // Subchunk2 ID (data)
-    header.write("data", 36);
-    // Subchunk2 Size
-    header.writeUInt32LE(dataLength, 40);
-  
-    return header;
-  }
-  
-
-
-
-  // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
-  socket.on("new_message", (msg, room, done) => {
-    // room에 연결된 모든 클라이언트에게 메시지를 전달
-    socket.to(room).emit("chatMessage", msg);
-    // 클라이언트에게 완료 신호를 보내기 위해 done() 호출
-    done();
+    setTimeout(() => {
+      mixAudioFiles(roomDir);
+    }, 15000);
   });
+
+
+  const mixAudioFiles = (dateDir) => {
+    const outputFilePath = path.join(dateDir, 'merge.wav');
+    const inputFiles = fs.readdirSync(dateDir)
+      .filter(file => file.endsWith('.wav') && file !== 'merge.wav');
+  
+    if (inputFiles.length < 2) {
+      console.log('믹스할 충분한 WAV 파일이 없습니다.');
+      return;
+    }
+  
+    if (fs.existsSync(outputFilePath)) {
+      console.log('기존 merge.wav 파일 삭제');
+      fs.unlinkSync(outputFilePath);
+    }
+  
+    const ffmpegCommand = ffmpeg();
+  
+    inputFiles.forEach(inputFile => {
+      const inputPath = path.join(dateDir, inputFile);
+      ffmpegCommand.input(inputPath);
+    });
+  
+    ffmpegCommand
+      .complexFilter(`amix=inputs=${inputFiles.length}:dropout_transition=2[out]`, ['out'])
+      .audioCodec('pcm_s16le')
+      .output(outputFilePath)
+      .on('end', () => {
+        console.log('오디오 파일을 믹스하여 merge.wav 파일을 생성했습니다.');
+      })
+      .on('error', (err) => {
+        console.error('오디오 파일 믹스 중 오류 발생:', err);
+      });
+  
+    ffmpegCommand.run();
+  };
+
+
+  
+
+
 
   socket.on("leaveRoom", () => {
     if (socket.roomName) {
@@ -270,6 +271,7 @@ socket.on("audioData", async (audioDataArrayBuffer) => {
 
   socket.on("boom", () => {
     const roomName = socket.roomName;
+    
 
     // 방의 모든 사용자에게 나가라는 신호를 보냅니다.
     wsServer.to(roomName).emit("exit_all");
@@ -376,32 +378,5 @@ socket.on("audioData", async (audioDataArrayBuffer) => {
   }
 });
 
-// let connection;
-// var oracledb= require('oracledb');
-
-// (async function(){
-//   try{
-//     connection = await oracledb.getConnection({
-//       user : 'system',
-//       password : '3575',
-//       connectionString : 'localhost:1521/xe'
-
-//     });
-//     console.log("Successfully connected to Oracle!")
-
-//   }catch(err){
-//     console.log("Error: ", err);
-//   }finally{
-//     if(connection){
-//       try{
-//         await connection.close();
-//       }catch(err){
-//         console.log("Error when closing the database connection: ", err);
-//       }
-//     }
-//   }
-// })()
-
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 httpServer.listen(3000, handleListen);
-

@@ -7,14 +7,13 @@ var cameraBtn = document.getElementById("camera");
 var camerasSelect = document.getElementById("cameras");
 var streamDiv = document.querySelector("#myStream");
 var otherStreamDiv = document.querySelector("#otherStream");
-var chatMessages = document.getElementById("chatMessages");
-var messageInput = document.getElementById("messageInput");
-var sendMessageForm = document.getElementById("sendMessageForm");
 var endRoomBtn = document.getElementById("endRoom");
 var boomBtn = document.getElementById("boom");
 var joinRoomBtn = document.getElementById("joinRoom");
 var createRoomBtn = document.getElementById("createRoom");
 var welcomeForm = document.querySelector("#welcome");
+var footerDiv = document.querySelector("#footer-wrapper");
+var roomNameDiv = document.getElementById("roomName");
 var myStream;
 var isMuted = false; // 마이크 미소거 상태 초기화
 
@@ -30,8 +29,7 @@ var sendPeer;
 var nickname;
 var mediaRecorder; // 수정: 미디어 레코더 초기화
 
-var audioChunks = [];
-var roomNameDiv = document.createElement("div"); // mediaRecorder 설정을 초기화합니다.
+var audioChunks = []; // mediaRecorder 설정을 초기화합니다.
 
 var initializeMediaRecorder = function initializeMediaRecorder() {
   mediaRecorder = new MediaRecorder(audioStream);
@@ -151,10 +149,12 @@ function handleMuteClick() {
   });
 
   if (isMuted) {
-    muteBtn.innerText = "UnMute";
+    muteBtn.innerHTML = '<img src="img/micOn.png" width="40" height="40">';
+    muteBtn.style.backgroundColor = "#D6D6D6";
     isMuted = false;
   } else {
-    muteBtn.innerText = "Mute";
+    muteBtn.innerHTML = '<img src="img/micOff.png" width="40" height="40">';
+    muteBtn.style.backgroundColor = "#909090";
     isMuted = true;
   }
 }
@@ -165,10 +165,12 @@ function handleCameraClick() {
   });
 
   if (isCameraOn) {
-    cameraBtn.innerText = "Turn Camera Off";
+    cameraBtn.innerHTML = '<img src="img/camOn.png" width="40" height="40">';
+    cameraBtn.style.backgroundColor = "#D6D6D6";
     isCameraOn = false;
   } else {
-    cameraBtn.innerText = "Turn Camera On";
+    cameraBtn.innerHTML = '<img src="img/camOff.png" width="40" height="40">';
+    cameraBtn.style.backgroundColor = "#909090";
     isCameraOn = true;
   }
 }
@@ -205,9 +207,7 @@ camerasSelect.addEventListener("input", handleCameraChange); // Welcome Form (jo
 
 var welcomeDiv = document.getElementById("welcome");
 var callDiv = document.getElementById("call");
-var chatDiv = document.getElementById("chat");
 callDiv.hidden = true;
-chatDiv.hidden = true;
 boomBtn.hidden = true;
 
 function initCall() {
@@ -216,8 +216,8 @@ function initCall() {
       switch (_context4.prev = _context4.next) {
         case 0:
           callDiv.hidden = false;
-          chatDiv.hidden = false;
           welcomeDiv.hidden = true;
+          footerDiv.hidden = true;
           _context4.next = 5;
           return regeneratorRuntime.awrap(getMedia());
 
@@ -241,24 +241,25 @@ function handleWelcome(event) {
           return regeneratorRuntime.awrap(initCall());
 
         case 4:
+          endRoomBtn.style.display = "inline-block";
           myDate = new Date();
           socket.emit("join_room", input.value, myDate.getTime());
           roomName = input.value;
           console.log("roomName:", roomName); // 로그로 값 확인
 
           input.value = "";
-          _context5.next = 11;
+          _context5.next = 12;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
-        case 11:
+        case 12:
           audioStream = _context5.sent;
           initializeMediaRecorder(); // 레코더 초기화
 
           mediaRecorder.start();
 
-        case 14:
+        case 15:
         case "end":
           return _context5.stop();
       }
@@ -273,29 +274,28 @@ function handleCreateNewRoom(event) {
       switch (_context6.prev = _context6.next) {
         case 0:
           event.preventDefault();
-          endRoomBtn.hidden = true;
-          boomBtn.hidden = false;
           roomName = "".concat(Math.floor(100 + Math.random() * 900), "-").concat(Math.floor(100 + Math.random() * 900), "-").concat(Math.floor(1000 + Math.random() * 9000));
-          _context6.next = 6;
+          _context6.next = 4;
           return regeneratorRuntime.awrap(initCall());
 
-        case 6:
+        case 4:
           startDate = new Date();
           socket.emit("join_room", roomName, startDate.getTime());
           console.log("roomName:", roomName);
-          roomNameDiv.textContent = "\uD68C\uC758 \uCF54\uB4DC : ".concat(roomName);
+          roomNameDiv.innerText = "\uD68C\uC758 \uCF54\uB4DC : ".concat(roomName);
           callDiv.appendChild(roomNameDiv);
-          _context6.next = 13;
+          boomBtn.style.display = "inline-block";
+          _context6.next = 12;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
-        case 13:
+        case 12:
           audioStream = _context6.sent;
           initializeMediaRecorder();
           mediaRecorder.start();
 
-        case 16:
+        case 15:
         case "end":
           return _context6.stop();
       }
@@ -354,24 +354,10 @@ socket.on("newStream", function (id) {
   console.log("newStream id=".concat(id));
   createRecvPeer(id);
   createRecvOffer(id);
-});
-socket.on("chatMessage", function (message, sendId) {
-  var li = document.createElement("li");
-  li.textContent = "".concat(message);
-  chatMessages.appendChild(li);
 }); // DB에서 가져온 userName
 
 socket.on("userNo_Name", function (userName) {
   console.log('서버로부터 받은 사용자 이름 : ' + userName);
-});
-sendMessageForm.addEventListener("submit", function (event) {
-  event.preventDefault();
-  var input = chatDiv.querySelector("#messageInput");
-  var value = input.value;
-  socket.emit("new_message", value, roomName, function () {
-    addMessage("You : ".concat(value));
-  });
-  input.value = "";
 });
 endRoomBtn.addEventListener("click", function () {
   // 1. 녹음 중지
@@ -390,8 +376,8 @@ endRoomBtn.addEventListener("click", function () {
   // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
 
   callDiv.hidden = true;
-  chatDiv.hidden = true;
   welcomeDiv.hidden = false;
+  footerDiv.hidden = false;
 });
 
 function createSendOffer() {
@@ -534,7 +520,9 @@ socket.on("bye", function (fromId) {
   otherStreamDiv.removeChild(video);
 });
 boomBtn.addEventListener("click", function () {
-  // 1. 녹음 중지
+  endRoomBtn.style.display = "none";
+  boomBtn.style.display = "none"; // 1. 녹음 중지
+
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
   } // 2. 서버에 회의방 퇴장 이벤트 보내기
@@ -558,8 +546,8 @@ boomBtn.addEventListener("click", function () {
   // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
 
   callDiv.hidden = true;
-  chatDiv.hidden = true;
-  welcomeDiv.hidden = false; // 5. 서버에 병합 이벤트 보내기
+  welcomeDiv.hidden = false;
+  footerDiv.hidden = false; // 5. 서버에 병합 이벤트 보내기
 
   socket.emit("boom");
 });
@@ -591,8 +579,8 @@ socket.on("exit_all", function () {
   // UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
 
   callDiv.hidden = true;
-  chatDiv.hidden = true;
   welcomeDiv.hidden = false;
+  footerDiv.hidden = false;
 });
 window.addEventListener('beforeunload', function (event) {
   // 녹음 중인 경우 녹음을 중지합니다.
@@ -610,7 +598,7 @@ inputField.addEventListener("keydown", function (event) {
       joinRoomBtn.click();
     }
   }
-}); // RTC code
+});
 
 function handleTrack(data, sendId) {
   var video = document.getElementById("".concat(sendId));
@@ -618,10 +606,11 @@ function handleTrack(data, sendId) {
   if (!video) {
     video = document.createElement("video");
     video.id = sendId;
-    video.width = 300;
-    video.height = 300;
+    video.width = 250;
+    video.height = 188;
     video.autoplay = true;
     video.playsInline = true;
+    video.style.border = "1px solid #000";
     otherStreamDiv.appendChild(video);
   }
 
@@ -631,11 +620,4 @@ function handleTrack(data, sendId) {
   if (video.id === "myFace") {
     video.volume = 0;
   }
-}
-
-function addMessage(message) {
-  var ul = chatDiv.querySelector("ul");
-  var li = document.createElement("li");
-  li.innerText = message;
-  ul.appendChild(li);
 }

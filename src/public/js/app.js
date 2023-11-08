@@ -6,14 +6,14 @@ const cameraBtn = document.getElementById("camera");
 const camerasSelect = document.getElementById("cameras");
 const streamDiv = document.querySelector("#myStream");
 const otherStreamDiv = document.querySelector("#otherStream");
-const chatMessages = document.getElementById("chatMessages");
-const messageInput = document.getElementById("messageInput");
-const sendMessageForm = document.getElementById("sendMessageForm");
 const endRoomBtn = document.getElementById("endRoom");
 const boomBtn = document.getElementById("boom");
 const joinRoomBtn = document.getElementById("joinRoom");
 const createRoomBtn = document.getElementById("createRoom");
 const welcomeForm = document.querySelector("#welcome");
+const footerDiv = document.querySelector("#footer-wrapper");
+const roomNameDiv = document.getElementById("roomName");
+
 
 
 let myStream;
@@ -32,7 +32,7 @@ var nickname;
 
 let mediaRecorder; // 수정: 미디어 레코더 초기화
 const audioChunks = [];
-const roomNameDiv = document.createElement("div");
+
 
 // mediaRecorder 설정을 초기화합니다.
 const initializeMediaRecorder = () => {
@@ -47,14 +47,14 @@ const initializeMediaRecorder = () => {
 
     const reader = new FileReader();
     reader.onload = () => {
-        const audioArrayBuffer = reader.result;
-        socket.emit("audioData", audioArrayBuffer);
+      const audioArrayBuffer = reader.result;
+      socket.emit("audioData", audioArrayBuffer);
     };
 
     reader.readAsArrayBuffer(audioData);
 
     audioChunks.length = 0;
-};
+  };
 
 };
 
@@ -104,10 +104,12 @@ function handleMuteClick() {
     track.enabled = !track.enabled;
   });
   if (isMuted) {
-    muteBtn.innerText = "UnMute";
+    muteBtn.innerHTML = '<img src="img/micOn.png" width="40" height="40">';
+    muteBtn.style.backgroundColor = "#D6D6D6"
     isMuted = false;
   } else {
-    muteBtn.innerText = "Mute";
+    muteBtn.innerHTML = '<img src="img/micOff.png" width="40" height="40">';
+    muteBtn.style.backgroundColor = "#909090"
     isMuted = true;
   }
 }
@@ -118,13 +120,17 @@ function handleCameraClick() {
   });
 
   if (isCameraOn) {
-    cameraBtn.innerText = "Turn Camera Off";
+    cameraBtn.innerHTML = '<img src="img/camOn.png" width="40" height="40">';
+    cameraBtn.style.backgroundColor = "#D6D6D6"
     isCameraOn = false;
   } else {
-    cameraBtn.innerText = "Turn Camera On";
+    cameraBtn.innerHTML = '<img src="img/camOff.png" width="40" height="40">';
+    cameraBtn.style.backgroundColor = "#909090"
     isCameraOn = true;
   }
 }
+
+
 
 async function handleCameraChange() {
   await getMedia(camerasSelect.value);
@@ -145,16 +151,14 @@ camerasSelect.addEventListener("input", handleCameraChange);
 // Welcome Form (join a room)
 const welcomeDiv = document.getElementById("welcome");
 const callDiv = document.getElementById("call");
-const chatDiv = document.getElementById("chat");
 
 callDiv.hidden = true;
-chatDiv.hidden = true;
 boomBtn.hidden = true;
 
 async function initCall() {
   callDiv.hidden = false;
-  chatDiv.hidden = false;
   welcomeDiv.hidden = true;
+  footerDiv.hidden = true;
   await getMedia();
 }
 
@@ -162,7 +166,8 @@ async function handleWelcome(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
   await initCall();
-  
+  endRoomBtn.style.display = "inline-block";
+
   const myDate = new Date();
   socket.emit("join_room", input.value, myDate.getTime());
   roomName = input.value;
@@ -176,15 +181,14 @@ async function handleWelcome(event) {
 
 async function handleCreateNewRoom(event) {
   event.preventDefault();
-  endRoomBtn.hidden = true;
-  boomBtn.hidden = false;
   const roomName = `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`;
   await initCall();
   const startDate = new Date();
   socket.emit("join_room", roomName, startDate.getTime());
   console.log("roomName:", roomName);
-  roomNameDiv.textContent = `회의 코드 : ${roomName}`;
+  roomNameDiv.innerText = `회의 코드 : ${roomName}`;
   callDiv.appendChild(roomNameDiv);
+  boomBtn.style.display = "inline-block";
 
   audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   initializeMediaRecorder();
@@ -229,26 +233,10 @@ socket.on("newStream", (id) => {
   createRecvOffer(id);
 });
 
-socket.on("chatMessage", (message, sendId,) => {
-  const li = document.createElement("li");
-  li.textContent = `${message}`;
-  chatMessages.appendChild(li);
-});
 
 // DB에서 가져온 userName
 socket.on("userNo_Name", (userName) => {
   console.log('서버로부터 받은 사용자 이름 : ' + userName);
-});
-
-
-sendMessageForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const input = chatDiv.querySelector("#messageInput");
-  const value = input.value;
-  socket.emit("new_message", value, roomName, () => {
-    addMessage(`You : ${value}`);
-  });
-  input.value = "";
 });
 
 endRoomBtn.addEventListener("click", () => {
@@ -268,8 +256,8 @@ endRoomBtn.addEventListener("click", () => {
 
   // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
   callDiv.hidden = true;
-  chatDiv.hidden = true;
   welcomeDiv.hidden = false;
+  footerDiv.hidden = false;
 });
 
 async function createSendOffer() {
@@ -369,7 +357,8 @@ socket.on("bye", (fromId) => {
 });
 
 boomBtn.addEventListener("click", () => {
-
+  endRoomBtn.style.display = "none";
+  boomBtn.style.display = "none";
 
   // 1. 녹음 중지
   if (mediaRecorder && mediaRecorder.state === "recording") {
@@ -391,8 +380,8 @@ boomBtn.addEventListener("click", () => {
   myFace.srcObject = null; // 화면에서 비디오 스트림을 제거합니다.
   // 4. (옵션) UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
   callDiv.hidden = true;
-  chatDiv.hidden = true;
   welcomeDiv.hidden = false;
+  footerDiv.hidden = false;
   // 5. 서버에 병합 이벤트 보내기
   socket.emit("boom");
 });
@@ -428,8 +417,8 @@ socket.on("exit_all", () => {
 
   // UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
   callDiv.hidden = true;
-  chatDiv.hidden = true;
   welcomeDiv.hidden = false;
+  footerDiv.hidden = false;
 });
 
 
@@ -453,19 +442,20 @@ inputField.addEventListener("keydown", function (event) {
 });
 
 
-// RTC code
 function handleTrack(data, sendId) {
   let video = document.getElementById(`${sendId}`);
   if (!video) {
     video = document.createElement("video");
     video.id = sendId;
-    video.width = 300;
-    video.height = 300;
+    video.width = 250;
+    video.height = 188;
     video.autoplay = true;
     video.playsInline = true;
+    video.style.border = "1px solid #000";
 
     otherStreamDiv.appendChild(video);
   }
+
 
   console.log(`handleTrack from ${sendId}`);
   video.srcObject = data.streams[0];
@@ -475,10 +465,3 @@ function handleTrack(data, sendId) {
   }
 }
 
-
-function addMessage(message) {
-  const ul = chatDiv.querySelector("ul");
-  const li = document.createElement("li");
-  li.innerText = message;
-  ul.appendChild(li);
-}

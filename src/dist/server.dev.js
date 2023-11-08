@@ -191,7 +191,7 @@ wsServer.on("connection", function (socket) {
   };
 
   socket.on("audioData", function _callee4(audioDataArrayBuffer) {
-    var roomDir, date, dateDir, audioFilePath, silenceDuration, silenceAudioFile, audioDataFile;
+    var roomDir, date, dateDir, audioFilePath, silenceDuration, outputFilePath, silenceAudioFile, audioDataFile;
     return regeneratorRuntime.async(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -201,6 +201,8 @@ wsServer.on("connection", function (socket) {
             dateDir = _path["default"].join(roomDir, date.toString());
             audioFilePath = _path["default"].join(roomDir, "".concat(date, ".wav"));
             silenceDuration = userDateMap.get(socket.id) / 1000; // 무음으로 사용할 시간 (milliseconds)
+
+            outputFilePath = _path["default"].join(dateDir, 'merge.wav');
 
             if (!fs.existsSync(roomDir)) {
               fs.mkdirSync(roomDir);
@@ -214,15 +216,15 @@ wsServer.on("connection", function (socket) {
             audioDataFile = _path["default"].join(dateDir, "".concat(date, ".wav"));
 
             if (!(silenceDuration > 0)) {
-              _context4.next = 22;
+              _context4.next = 23;
               break;
             }
 
-            _context4.prev = 10;
-            _context4.next = 13;
+            _context4.prev = 11;
+            _context4.next = 14;
             return regeneratorRuntime.awrap(createSilenceAudio(silenceAudioFile, silenceDuration));
 
-          case 13:
+          case 14:
             fs.writeFileSync(audioDataFile, Buffer.from(audioDataArrayBuffer));
             setTimeout(function () {
               var combinedAudio = ffmpeg().input(silenceAudioFile).input(audioDataFile).complexFilter(['[0:a][1:a]concat=n=2:v=0:a=1[out]'], ['out']).output(audioFilePath).on('end', function () {
@@ -232,68 +234,66 @@ wsServer.on("connection", function (socket) {
               });
               combinedAudio.run();
             }, 10000);
-            _context4.next = 20;
+            _context4.next = 21;
             break;
 
-          case 17:
-            _context4.prev = 17;
-            _context4.t0 = _context4["catch"](10);
+          case 18:
+            _context4.prev = 18;
+            _context4.t0 = _context4["catch"](11);
             console.error('무음 데이터 생성 중 오류 발생:', _context4.t0);
 
-          case 20:
-            _context4.next = 24;
+          case 21:
+            _context4.next = 25;
             break;
 
-          case 22:
+          case 23:
             fs.writeFileSync(audioFilePath, Buffer.from(audioDataArrayBuffer));
             console.log("오디오 파일 저장 완료:", "".concat(date, ".wav"));
 
-          case 24:
+          case 25:
+            setTimeout(function () {
+              mixAudioFiles(roomDir);
+            }, 15000);
+
+          case 26:
           case "end":
             return _context4.stop();
         }
       }
-    }, null, null, [[10, 17]]);
-  }); // WAV 파일 헤더 생성 함수
-
-  function createWavHeader(dataLength, sampleRate, sampleSize) {
-    var header = Buffer.alloc(44); // Chunk ID (RIFF)
-
-    header.write("RIFF", 0); // Chunk Size
-
-    header.writeUInt32LE(dataLength + 36, 4); // Format (WAVE)
-
-    header.write("WAVE", 8); // Subchunk1 ID (fmt )
-
-    header.write("fmt ", 12); // Subchunk1 Size (16)
-
-    header.writeUInt32LE(16, 16); // Audio Format (1 for PCM)
-
-    header.writeUInt16LE(1, 20); // Num Channels (1 for mono, 2 for stereo)
-
-    header.writeUInt16LE(1, 22); // Sample Rate
-
-    header.writeUInt32LE(sampleRate, 24); // Byte Rate
-
-    header.writeUInt32LE(sampleRate * sampleSize, 28); // Block Align
-
-    header.writeUInt16LE(sampleSize, 32); // Bits per Sample
-
-    header.writeUInt16LE(sampleSize * 8, 34); // Subchunk2 ID (data)
-
-    header.write("data", 36); // Subchunk2 Size
-
-    header.writeUInt32LE(dataLength, 40);
-    return header;
-  } // 클라이언트에서 메시지를 보낼 때 받는 이벤트를 수정
-
-
-  socket.on("new_message", function (msg, room, done) {
-    // room에 연결된 모든 클라이언트에게 메시지를 전달
-    socket.to(room).emit("chatMessage", msg); // 클라이언트에게 완료 신호를 보내기 위해 done() 호출
-
-    done();
+    }, null, null, [[11, 18]]);
   });
+
+  var mixAudioFiles = function mixAudioFiles(dateDir) {
+    var outputFilePath = _path["default"].join(dateDir, 'merge.wav');
+
+    var inputFiles = fs.readdirSync(dateDir).filter(function (file) {
+      return file.endsWith('.wav') && file !== 'merge.wav';
+    });
+
+    if (inputFiles.length < 2) {
+      console.log('믹스할 충분한 WAV 파일이 없습니다.');
+      return;
+    }
+
+    if (fs.existsSync(outputFilePath)) {
+      console.log('기존 merge.wav 파일 삭제');
+      fs.unlinkSync(outputFilePath);
+    }
+
+    var ffmpegCommand = ffmpeg();
+    inputFiles.forEach(function (inputFile) {
+      var inputPath = _path["default"].join(dateDir, inputFile);
+
+      ffmpegCommand.input(inputPath);
+    });
+    ffmpegCommand.complexFilter("amix=inputs=".concat(inputFiles.length, ":dropout_transition=2[out]"), ['out']).audioCodec('pcm_s16le').output(outputFilePath).on('end', function () {
+      console.log('오디오 파일을 믹스하여 merge.wav 파일을 생성했습니다.');
+    }).on('error', function (err) {
+      console.error('오디오 파일 믹스 중 오류 발생:', err);
+    });
+    ffmpegCommand.run();
+  };
+
   socket.on("leaveRoom", function () {
     if (socket.roomName) {
       var roomName = socket.roomName;
@@ -434,28 +434,7 @@ wsServer.on("connection", function (socket) {
       }
     });
   }
-}); // let connection;
-// var oracledb= require('oracledb');
-// (async function(){
-//   try{
-//     connection = await oracledb.getConnection({
-//       user : 'system',
-//       password : '3575',
-//       connectionString : 'localhost:1521/xe'
-//     });
-//     console.log("Successfully connected to Oracle!")
-//   }catch(err){
-//     console.log("Error: ", err);
-//   }finally{
-//     if(connection){
-//       try{
-//         await connection.close();
-//       }catch(err){
-//         console.log("Error when closing the database connection: ", err);
-//       }
-//     }
-//   }
-// })()
+});
 
 var handleListen = function handleListen() {
   return console.log("Listening on http://localhost:3000");
