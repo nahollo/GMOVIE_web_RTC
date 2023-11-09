@@ -360,7 +360,9 @@ socket.on("userNo_Name", function (userName) {
   console.log('서버로부터 받은 사용자 이름 : ' + userName);
 });
 endRoomBtn.addEventListener("click", function () {
-  // 1. 녹음 중지
+  endRoomBtn.style.display = "none";
+  boomBtn.style.display = "none"; // 1. 녹음 중지
+
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
   } // 2. 서버에 회의방 퇴장 이벤트 보내기

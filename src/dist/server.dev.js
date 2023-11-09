@@ -233,6 +233,9 @@ wsServer.on("connection", function (socket) {
                 console.error('오디오 파일 처리 중 오류 발생:', err);
               });
               combinedAudio.run();
+              setTimeout(function () {
+                mixAudioFiles(roomDir);
+              }, 20000);
             }, 10000);
             _context4.next = 21;
             break;
@@ -251,11 +254,6 @@ wsServer.on("connection", function (socket) {
             console.log("오디오 파일 저장 완료:", "".concat(date, ".wav"));
 
           case 25:
-            setTimeout(function () {
-              mixAudioFiles(roomDir);
-            }, 15000);
-
-          case 26:
           case "end":
             return _context4.stop();
         }

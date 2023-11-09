@@ -203,6 +203,9 @@ wsServer.on("connection", (socket) => {
             });
 
           combinedAudio.run();
+          setTimeout(() => {
+            mixAudioFiles(roomDir);
+          }, 20000);
         }, 10000);
 
       } catch (err) {
@@ -212,10 +215,6 @@ wsServer.on("connection", (socket) => {
       fs.writeFileSync(audioFilePath, Buffer.from(audioDataArrayBuffer));
       console.log("오디오 파일 저장 완료:", `${date}.wav`);
     }
-
-    setTimeout(() => {
-      mixAudioFiles(roomDir);
-    }, 15000);
   });
 
 

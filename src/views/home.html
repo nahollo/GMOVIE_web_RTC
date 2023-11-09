@@ -19,22 +19,29 @@
 
                 <!-- 로고 -->
                 <div id="logo">
-                    <h1><a href="home.html"><img src="img/GMOVIE LOGO.png" alt="GMOVIE" width="250" height="80"></a>
+                    <h1><a href="http://localhost/home"><img src="img/GMOVIE LOGO.png" alt="GMOVIE" width="250" height="80"></a>
                     </h1>
                 </div>
 
                 <!-- 네비 -->
                 <nav id="nav">
                     <ul>
+                        <li><a href="http://localhost/home">home</a></li>
+                        <li><a href="http://localhost/service">service</a></li>
+                        <li><a href="http://localhost/aboutus">About us</a></li>
+                        <li><a href="http://localhost/developer">Developer</a></li>
+                        <li class="current"><a href="http://localhost/login">Login</a></li>
+                    </ul>
+                </nav>
+                <!-- <nav id="nav">
+                    <ul>
                         <li class="current"><a href="home.html">meeting</a></li>
                         <li><a href="service.html">calender</a></li>
                         <li><a href="login.html">Login</a></li>
                     </ul>
-                </nav>
+                </nav> -->
             </header>
         </div>
-
-
 
         <div id="banner" class="box container">
             <div class="row">
@@ -48,6 +55,10 @@
                                 <div id="box2">
                                     <button type="button" id="createRoom">회의 만들기</button>
                                     <button type="button" id="joinRoom">회의 참여하기</button>
+                                    <a href="http://localhost/calendar" onclick="openPopup(); return false;">
+                                        <img src="img/calendar.png" id="calendar" />
+                                    </a>
+                                    
                                 </div>
                             </div>
                         </form>
@@ -69,19 +80,35 @@
                             </div>
                             <br>
                             <h1 id="roomName"></h1>
-                            <div class="custom-control-container">
-                                <select id="cameras" class="custom-select"></select>
-                                <button id="mute" class="custom-button" style="background-color: #D6D6D6;"><img
-                                        src="img/micOn.png" width="40" height="40" background-color: #D6D6D6;></button>
-                                <button id="camera" class="custom-button" style="background-color: #D6D6D6;"><img
-                                        src="img/camOn.png" width="40" height="40"></button>
 
-                                <div id="boombox">
-                                    <button id="boom" class="hidden-button" width="100px">회의 종료하기</button>
+
+
+                            <div class="custom-control-container">
+                                <!-- <h1 id="roomName"></h1> -->
+
+                                <!-- <div class="container1"> -->
+                                <select id="cameras" class="custom-select"></select>
+                                <!-- </div> -->
+
+
+                                <div class="container2">
+                                    <button id="mute" class="custom-button" style="background-color: #D6D6D6;"><img
+                                            src="img/micOn.png" width="40" height="40" background-color:
+                                            #D6D6D6;></button>
+                                    <button id="camera" class="custom-button" style="background-color: #D6D6D6;"><img
+                                            src="img/camOn.png" width="40" height="40"></button>
                                 </div>
-                                <div id="endbox">
+
+
+                                <div id="boombox" class="container3">
+                                    <button id="boom" class="hidden-button" width="100px">회의 종료하기</button>
                                     <button id="endRoom" class="hidden-button" width="100px">회의 나가기</button>
                                 </div>
+
+
+                                <!-- <div id="endbox"> -->
+                                <!-- <button id="endRoom" class="hidden-button" width="100px">회의 나가기</button> -->
+                                <!-- </div> -->
                             </div>
                         </div>
                     </div>
@@ -124,6 +151,7 @@
                             <li>
                                 <p>Na HyeongJin</p>
                             </li>
+                            <li><p>Lee GwangHui</p></li>
                             <li>
                                 <p>WANG CHIANG LING</p>
                             </li>
@@ -145,7 +173,7 @@
                             <li>
                                 <p>70 Sunmoon-ro 221, Tangjeong-myeon<br />
                                     Asan-si, Chungcheongnam-do
-                                </p>
+                                </p>+
                             </li>
                             <li>
                                 <h1>tel</h1>
@@ -200,6 +228,7 @@
     <style>
         #banner {
             background-color: #f7f7f7;
+            padding-top: 20px;
         }
 
         #box {
@@ -209,46 +238,52 @@
         }
 
         #box2 {
-            padding-left: 2.7em;
+            padding-left: 1em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #box2>* {
+            margin-right: 15px;
+        }
+
+        #calendar {
+            margin-top: 10px;
+            width: 50px;
+            height: 50px;
         }
 
         #spacebox {
             margin-bottom: 25px;
         }
 
-
-
-        #boombox {
-            background-color: red;
-            padding-left: 550px;
+        #cameras {
+            margin-bottom: 55px;
         }
 
-        #endbox {
-            background-color: green;
-            padding-left: 550px;
+        .custom-control-container {
+            /* background-color: yellow; */
+            display: flex;
+            /* flex-direction: column; */
+            justify-content: space-between;
         }
 
-        #boom, #endRoom {
-            background-color: #444444;
-            color: #ffffff;
-            position: relative;
-            display: inline-block;
-            padding: 10px 20px;
-            /* margin-left: 10px; */
-            margin-right: 20px;
+        .container2 {
+            margin-left: 140px;
+            margin-bottom: 25px;
+        }
+
+        .container3 {
+            /* margin-bottom: 20px; */
+            margin-left: 20px;
+        }
+
+        #roomName {
+            font-size: 14px;
             font-family: NanumSquareR;
-            font-size: 15px;
-            text-decoration: none;
-            text-transform: uppercase;
-            overflow: hidden;
-            transition: 0.5s;
-            margin-top: 10px;
-            /* margin-bottom: 30px; */
-            letter-spacing: 1.5px;
-            border-radius: 5px;
-            white-space: nowrap;
-            width: 170px;
+            font-weight: bold;
         }
+
 
         #otherStream {
             display: flex;
@@ -256,7 +291,7 @@
             align-items: center;
             background-color: #F7F7F7;
             padding: 15px;
-            border: 1px solid #999;
+            /* border: 1px solid #999; */
             border-radius: 8px;
             /* box-shadow: 3px 3px 5px #888; */
         }
@@ -265,43 +300,40 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* background-color: #F7F7F7; */
             padding: 15px;
-            border: 1px solid #999;
             border-radius: 8px;
-            /* box-shadow: 3px 3px 5px #888; */
         }
-
-        .custom-select {
-            margin-right: 330px;
-        }
-
 
         .hidden-button {
-            background-color: #E02828;
-            border: none;
+            background-color: #444444;
             color: #ffffff;
-            padding: 15px 0;
-            text-align: center;
-            text-decoration: none;
+            position: relative;
             display: inline-block;
-            font-size: 13px;
-            margin: 4px;
-            cursor: pointer;
+            padding: 10px 15px;
+            font-family: NanumSquareR;
+            font-size: 12px;
+            text-decoration: none;
+            text-transform: uppercase;
+            overflow: hidden;
+            transition: 0.5s;
+            letter-spacing: 1.5px;
+            border-radius: 5px;
+            white-space: nowrap;
+            width: 120px;
             display: none;
-            border-radius: 10px;
-            width: 100px;
-            margin-left: 300px;
-            /* 둥글게 만들기 위한 값 설정 (원하는 크기로 조절) */
         }
 
-
-        /* Optional: Add hover effect */
         .hidden-button:hover {
             background-color: #E02828;
-            /* Change the background color on hover */
         }
     </style>
+
+    <script>
+    document.getElementById('calendar').onclick = function() {
+        window.open('http://localhost/calendar', 'GMOVIE 캘린더', 'width=1200,height=851');
+        return false; // 이걸 추가하면 기존 링크로 이동하지 않아요.
+    };
+</script>
 
 </body>
 

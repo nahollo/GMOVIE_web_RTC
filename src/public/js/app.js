@@ -240,6 +240,8 @@ socket.on("userNo_Name", (userName) => {
 });
 
 endRoomBtn.addEventListener("click", () => {
+  endRoomBtn.style.display = "none";
+  boomBtn.style.display = "none";
   // 1. 녹음 중지
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
