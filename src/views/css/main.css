@@ -2144,12 +2144,16 @@ ul.menu li:first-child {
 }
 
 #nav ul li:last-child a {
-  background: #b4c8ce; /* 배경 색상 */
+  margin-top: 10px; /* 원하는 마진 값으로 설정 */
+  background: #0b1a1f; /* 배경 색상 */
   color: #ffffff; /* 글자 색상 */
-  padding: 10px 20px; /* 패딩 설정 */
+  /* padding: 10px 20px; 패딩 설정 */
   border-radius: 5px; /* 둥근 모서리 설정 */
   text-decoration: none;
-  margin-left: 350%; /* 로그인 버튼을 왼쪽으로 이동시키는 마진 설정 */
+  display: inline-block;
+  /* height: 40px; */
+  line-height: 30px;
+  vertical-align: middle;
 }
 
 #nav ul li:last-child a:hover {

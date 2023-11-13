@@ -91,7 +91,7 @@ wsServer.on("connection", (socket) => {
     createSendAnswer(offer, sendId);
   });
 
-  socket.on("recvCandidate", async (candidate, sendId) => {
+  socket.on("recvCandidate", async (candidate, sendId ) => {
     if (candidate) {
       sendPeerMap.get(sendId).get(socket.id).addIceCandidate(candidate);
     }
