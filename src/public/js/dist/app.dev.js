@@ -14,6 +14,8 @@ var createRoomBtn = document.getElementById("createRoom");
 var welcomeForm = document.querySelector("#welcome");
 var footerDiv = document.querySelector("#footer-wrapper");
 var roomNameDiv = document.getElementById("roomName");
+var startShareBtn = document.getElementById("startShareBtn");
+var stopShareBtn = document.getElementById("stopShareBtn");
 var myStream;
 var isMuted = false; // 마이크 미소거 상태 초기화
 
@@ -29,7 +31,8 @@ var sendPeer;
 var nickname;
 var mediaRecorder; // 수정: 미디어 레코더 초기화
 
-var audioChunks = []; // mediaRecorder 설정을 초기화합니다.
+var audioChunks = [];
+var isScreenSharing = false; // mediaRecorder 설정을 초기화합니다.
 
 var initializeMediaRecorder = function initializeMediaRecorder() {
   mediaRecorder = new MediaRecorder(audioStream);
@@ -203,7 +206,9 @@ function handleCameraChange() {
 
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
-camerasSelect.addEventListener("input", handleCameraChange); // Welcome Form (join a room)
+camerasSelect.addEventListener("input", handleCameraChange);
+startShareBtn.addEventListener("click", startScreenShare);
+stopShareBtn.addEventListener("click", stopScreenShare); // Welcome Form (join a room)
 
 var welcomeDiv = document.getElementById("welcome");
 var callDiv = document.getElementById("call");
@@ -483,32 +488,144 @@ function createRecvOffer(sendId) {
   });
 }
 
-socket.on("sendAnswer", function _callee3(answer) {
-  return regeneratorRuntime.async(function _callee3$(_context11) {
+function startScreenShare() {
+  var screenStream, shareInfo, videoTrack, myVideo, webcamTrack, screenSender;
+  return regeneratorRuntime.async(function startScreenShare$(_context11) {
     while (1) {
       switch (_context11.prev = _context11.next) {
+        case 0:
+          _context11.prev = 0;
+          _context11.next = 3;
+          return regeneratorRuntime.awrap(navigator.mediaDevices.getDisplayMedia());
+
+        case 3:
+          screenStream = _context11.sent;
+          shareInfo = {
+            roomName: roomName,
+            screenStream: screenStream
+          };
+          socket.emit("startScreenShare", shareInfo);
+          videoTrack = screenStream.getVideoTracks()[0];
+          screenStream.addTrack(videoTrack);
+          myVideo = document.getElementById("myFace");
+          myVideo.srcObject = screenStream;
+          webcamTrack = myStream.getVideoTracks()[0];
+          myStream.removeTrack(webcamTrack);
+          myStream.addTrack(videoTrack);
+          screenSender = sendPeer.getSenders().find(function (sender) {
+            return sender.track.kind === "video";
+          });
+          screenSender.replaceTrack(videoTrack); // Update the screen sharing status
+
+          isScreenSharing = true; // Show/hide buttons based on the screen sharing status
+
+          startShareBtn.style.display = "none";
+          stopShareBtn.style.display = "inline-block";
+          _context11.next = 23;
+          break;
+
+        case 20:
+          _context11.prev = 20;
+          _context11.t0 = _context11["catch"](0);
+          console.error("Error starting screen share:", _context11.t0);
+
+        case 23:
+        case "end":
+          return _context11.stop();
+      }
+    }
+  }, null, null, [[0, 20]]);
+}
+
+function stopScreenShare() {
+  var deviceId, initialConstraint, cameraConstraints, screenTrack, videoTrack, videoSender;
+  return regeneratorRuntime.async(function stopScreenShare$(_context12) {
+    while (1) {
+      switch (_context12.prev = _context12.next) {
+        case 0:
+          _context12.prev = 0;
+          socket.emit("stopScreenShare", roomName);
+          deviceId = camerasSelect.value;
+          initialConstraint = {
+            audio: true,
+            video: {
+              facingMode: "user"
+            }
+          };
+          cameraConstraints = {
+            audio: true,
+            video: {
+              deviceId: {
+                exact: deviceId
+              }
+            }
+          }; // 화면 공유 중인 비디오 트랙 제거
+
+          screenTrack = myStream.getVideoTracks()[0];
+          screenTrack.stop();
+          myStream.removeTrack(screenTrack); // 웹캠 비디오 트랙 다시 얻어오기
+
+          _context12.next = 10;
+          return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia(deviceId ? cameraConstraints : initialConstraint));
+
+        case 10:
+          myStream = _context12.sent;
+          myFace.srcObject = myStream; // 웹캠 비디오 트랙을 PeerConnection에 추가
+
+          videoTrack = myStream.getVideoTracks()[0];
+          videoSender = sendPeer.getSenders().find(function (sender) {
+            return sender.track.kind === "video";
+          });
+          videoSender.replaceTrack(videoTrack); // Update the screen sharing status
+
+          isScreenSharing = false; // Show/hide buttons based on the screen sharing status
+
+          startShareBtn.style.display = "inline-block";
+          stopShareBtn.style.display = "none";
+          _context12.next = 23;
+          break;
+
+        case 20:
+          _context12.prev = 20;
+          _context12.t0 = _context12["catch"](0);
+          console.error("Error in stopScreenShare:", _context12.t0);
+
+        case 23:
+        case "end":
+          return _context12.stop();
+      }
+    }
+  }, null, null, [[0, 20]]);
+}
+
+startShareBtn.style.display = isScreenSharing ? "none" : "inline-block";
+stopShareBtn.style.display = isScreenSharing ? "inline-block" : "none";
+socket.on("sendAnswer", function _callee3(answer) {
+  return regeneratorRuntime.async(function _callee3$(_context13) {
+    while (1) {
+      switch (_context13.prev = _context13.next) {
         case 0:
           console.log("got sendAnswer from server");
           sendPeer.setRemoteDescription(answer);
 
         case 2:
         case "end":
-          return _context11.stop();
+          return _context13.stop();
       }
     }
   });
 });
 socket.on("recvAnswer", function _callee4(answer, sendId) {
-  return regeneratorRuntime.async(function _callee4$(_context12) {
+  return regeneratorRuntime.async(function _callee4$(_context14) {
     while (1) {
-      switch (_context12.prev = _context12.next) {
+      switch (_context14.prev = _context14.next) {
         case 0:
           console.log("got recvAnswer from server");
           recvPeerMap.get(sendId).setRemoteDescription(answer);
 
         case 2:
         case "end":
-          return _context12.stop();
+          return _context14.stop();
       }
     }
   });

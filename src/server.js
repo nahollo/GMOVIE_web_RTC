@@ -91,7 +91,7 @@ wsServer.on("connection", (socket) => {
     createSendAnswer(offer, sendId);
   });
 
-  socket.on("recvCandidate", async (candidate, sendId ) => {
+  socket.on("recvCandidate", async (candidate, sendId) => {
     if (candidate) {
       sendPeerMap.get(sendId).get(socket.id).addIceCandidate(candidate);
     }
@@ -135,6 +135,14 @@ wsServer.on("connection", (socket) => {
         streamMap.get(room).delete(id);
       }
     });
+  });
+
+  socket.on("startScreenShare", (shareInfo) => {
+    socket.to(shareInfo.roomName).emit("startScreenShare", shareInfo);
+  });
+
+  socket.on("stopScreenShare", (roomName) => {
+    socket.to(roomName).emit("stopScreenShare");
   });
 
 
@@ -222,24 +230,24 @@ wsServer.on("connection", (socket) => {
     const outputFilePath = path.join(dateDir, 'merge.wav');
     const inputFiles = fs.readdirSync(dateDir)
       .filter(file => file.endsWith('.wav') && file !== 'merge.wav');
-  
+
     if (inputFiles.length < 2) {
       console.log('믹스할 충분한 WAV 파일이 없습니다.');
       return;
     }
-  
+
     if (fs.existsSync(outputFilePath)) {
       console.log('기존 merge.wav 파일 삭제');
       fs.unlinkSync(outputFilePath);
     }
-  
+
     const ffmpegCommand = ffmpeg();
-  
+
     inputFiles.forEach(inputFile => {
       const inputPath = path.join(dateDir, inputFile);
       ffmpegCommand.input(inputPath);
     });
-  
+
     ffmpegCommand
       .complexFilter(`amix=inputs=${inputFiles.length}:dropout_transition=2[out]`, ['out'])
       .audioCodec('pcm_s16le')
@@ -250,12 +258,12 @@ wsServer.on("connection", (socket) => {
       .on('error', (err) => {
         console.error('오디오 파일 믹스 중 오류 발생:', err);
       });
-  
+
     ffmpegCommand.run();
   };
 
 
-  
+
 
 
 
@@ -270,7 +278,7 @@ wsServer.on("connection", (socket) => {
 
   socket.on("boom", () => {
     const roomName = socket.roomName;
-    
+
 
     // 방의 모든 사용자에게 나가라는 신호를 보냅니다.
     wsServer.to(roomName).emit("exit_all");

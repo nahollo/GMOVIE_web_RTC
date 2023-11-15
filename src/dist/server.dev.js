@@ -174,6 +174,12 @@ wsServer.on("connection", function (socket) {
       }
     });
   });
+  socket.on("startScreenShare", function (shareInfo) {
+    socket.to(shareInfo.roomName).emit("startScreenShare", shareInfo);
+  });
+  socket.on("stopScreenShare", function (roomName) {
+    socket.to(roomName).emit("stopScreenShare");
+  });
 
   var createSilenceAudio = function createSilenceAudio(silenceAudioFile, silenceDuration) {
     return new Promise(function (resolve, reject) {

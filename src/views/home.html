@@ -19,7 +19,8 @@
 
                 <!-- 로고 -->
                 <div id="logo">
-                    <h1><a href="http://localhost/home"><img src="img/GMOVIE LOGO.png" alt="GMOVIE" width="250" height="80"></a>
+                    <h1><a href="http://localhost/home"><img src="img/GMOVIE LOGO.png" alt="GMOVIE" width="250"
+                                height="80"></a>
                     </h1>
                 </div>
 
@@ -60,7 +61,7 @@
                                     <a href="http://localhost/calendar" onclick="openPopup(); return false;">
                                         <img src="img/calendar.png" id="calendar" />
                                     </a>
-                                    
+
                                 </div>
                             </div>
                         </form>
@@ -76,14 +77,14 @@
                     <div class="center-container">
                         <div id="call" hidden>
                             <div id="otherStream"></div>
+
                             <div id="myStream">
                                 <video id="myFace" autoplay playsinline width="500" height="376"
                                     style="border: 1px solid #000;"></video>
                             </div>
+
                             <br>
                             <h1 id="roomName"></h1>
-
-
 
                             <div class="custom-control-container">
                                 <!-- <h1 id="roomName"></h1> -->
@@ -99,6 +100,8 @@
                                             #D6D6D6;></button>
                                     <button id="camera" class="custom-button" style="background-color: #D6D6D6;"><img
                                             src="img/camOn.png" width="40" height="40"></button>
+                                    <button type="button" id="startShareBtn">화면 공유 시작</button>
+                                    <button type="button" id="stopShareBtn">화면 공유 중지</button>
                                 </div>
 
 
@@ -153,7 +156,9 @@
                             <li>
                                 <p>Na HyeongJin</p>
                             </li>
-                            <li><p>Lee GwangHui</p></li>
+                            <li>
+                                <p>Lee GwangHui</p>
+                            </li>
                             <li>
                                 <p>WANG CHIANG LING</p>
                             </li>
@@ -331,11 +336,11 @@
     </style>
 
     <script>
-    document.getElementById('calendar').onclick = function() {
-        window.open('http://localhost/calendar', 'GMOVIE 캘린더', 'width=1200,height=851');
-        return false; // 이걸 추가하면 기존 링크로 이동하지 않아요.
-    };
-</script>
+        document.getElementById('calendar').onclick = function () {
+            window.open('http://localhost/calendar', 'GMOVIE 캘린더', 'width=1200,height=851');
+            return false; // 이걸 추가하면 기존 링크로 이동하지 않아요.
+        };
+    </script>
 
 </body>
 

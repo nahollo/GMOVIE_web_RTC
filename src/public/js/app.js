@@ -13,6 +13,9 @@ const createRoomBtn = document.getElementById("createRoom");
 const welcomeForm = document.querySelector("#welcome");
 const footerDiv = document.querySelector("#footer-wrapper");
 const roomNameDiv = document.getElementById("roomName");
+const startShareBtn = document.getElementById("startShareBtn");
+const stopShareBtn = document.getElementById("stopShareBtn");
+
 
 
 
@@ -32,6 +35,7 @@ var nickname;
 
 let mediaRecorder; // 수정: 미디어 레코더 초기화
 const audioChunks = [];
+let isScreenSharing = false;
 
 
 // mediaRecorder 설정을 초기화합니다.
@@ -147,6 +151,8 @@ async function handleCameraChange() {
 muteBtn.addEventListener("click", handleMuteClick);
 cameraBtn.addEventListener("click", handleCameraClick);
 camerasSelect.addEventListener("input", handleCameraChange);
+startShareBtn.addEventListener("click", startScreenShare);
+stopShareBtn.addEventListener("click", stopScreenShare);
 
 // Welcome Form (join a room)
 const welcomeDiv = document.getElementById("welcome");
@@ -337,6 +343,88 @@ async function createRecvOffer(sendId) {
   console.log(`send recvOffer to server`);
   socket.emit("recvOffer", offer, sendId);
 }
+
+async function startScreenShare() {
+  try {
+    const screenStream = await navigator.mediaDevices.getDisplayMedia();
+    const shareInfo = {
+      roomName: roomName,
+      screenStream: screenStream
+    };
+
+    socket.emit("startScreenShare", shareInfo);
+
+    const videoTrack = screenStream.getVideoTracks()[0];
+    screenStream.addTrack(videoTrack);
+
+    const myVideo = document.getElementById("myFace");
+    myVideo.srcObject = screenStream;
+
+    const webcamTrack = myStream.getVideoTracks()[0];
+    myStream.removeTrack(webcamTrack);
+    myStream.addTrack(videoTrack);
+
+    const screenSender = sendPeer.getSenders().find((sender) => sender.track.kind === "video");
+    screenSender.replaceTrack(videoTrack);
+
+    // Update the screen sharing status
+    isScreenSharing = true;
+
+    // Show/hide buttons based on the screen sharing status
+    startShareBtn.style.display = "none";
+    stopShareBtn.style.display = "inline-block";
+
+  } catch (error) {
+    console.error("Error starting screen share:", error);
+  }
+}
+
+
+async function stopScreenShare() {
+  try {
+    socket.emit("stopScreenShare", roomName);
+
+    const deviceId = camerasSelect.value;
+    const initialConstraint = {
+      audio: true,
+      video: { facingMode: "user" },
+    };
+
+    const cameraConstraints = {
+      audio: true,
+      video: { deviceId: { exact: deviceId } },
+    };
+    // 화면 공유 중인 비디오 트랙 제거
+    const screenTrack = myStream.getVideoTracks()[0];
+    screenTrack.stop();
+    myStream.removeTrack(screenTrack);
+
+    // 웹캠 비디오 트랙 다시 얻어오기
+    myStream = await navigator.mediaDevices.getUserMedia(
+      deviceId ? cameraConstraints : initialConstraint
+    );
+    myFace.srcObject = myStream;
+
+    // 웹캠 비디오 트랙을 PeerConnection에 추가
+    const videoTrack = myStream.getVideoTracks()[0];
+    const videoSender = sendPeer.getSenders().find((sender) => sender.track.kind === "video");
+    videoSender.replaceTrack(videoTrack);
+
+    // Update the screen sharing status
+    isScreenSharing = false;
+
+    // Show/hide buttons based on the screen sharing status
+    startShareBtn.style.display = "inline-block";
+    stopShareBtn.style.display = "none";
+
+  } catch (error) {
+    console.error("Error in stopScreenShare:", error);
+  }
+}
+
+startShareBtn.style.display = isScreenSharing ? "none" : "inline-block";
+stopShareBtn.style.display = isScreenSharing ? "inline-block" : "none";
+
 
 socket.on("sendAnswer", async (answer) => {
   console.log("got sendAnswer from server");
