@@ -171,18 +171,21 @@ async function initCall() {
 async function handleWelcome(event) {
   event.preventDefault();
   const input = welcomeForm.querySelector("input");
-  await initCall();
-  endRoomBtn.style.display = "inline-block";
+  if (!input.value) {
+    alert("회의방 코드를 입력해주세요.");
+  } else {
+    await initCall();
+    endRoomBtn.style.display = "inline-block";
+    const myDate = new Date();
+    socket.emit("join_room", input.value, myDate.getTime());
+    roomName = input.value;
+    console.log("roomName:", roomName); // 로그로 값 확인
+    input.value = "";
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-  const myDate = new Date();
-  socket.emit("join_room", input.value, myDate.getTime());
-  roomName = input.value;
-  console.log("roomName:", roomName); // 로그로 값 확인
-  input.value = "";
-  audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-  initializeMediaRecorder(); // 레코더 초기화
-  mediaRecorder.start();
+    initializeMediaRecorder(); // 레코더 초기화
+    mediaRecorder.start();
+  }
 }
 
 async function handleCreateNewRoom(event) {

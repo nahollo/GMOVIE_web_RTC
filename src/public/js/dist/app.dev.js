@@ -242,10 +242,21 @@ function handleWelcome(event) {
         case 0:
           event.preventDefault();
           input = welcomeForm.querySelector("input");
-          _context5.next = 4;
+
+          if (input.value) {
+            _context5.next = 6;
+            break;
+          }
+
+          alert("회의방 코드를 입력해주세요.");
+          _context5.next = 19;
+          break;
+
+        case 6:
+          _context5.next = 8;
           return regeneratorRuntime.awrap(initCall());
 
-        case 4:
+        case 8:
           endRoomBtn.style.display = "inline-block";
           myDate = new Date();
           socket.emit("join_room", input.value, myDate.getTime());
@@ -253,18 +264,18 @@ function handleWelcome(event) {
           console.log("roomName:", roomName); // 로그로 값 확인
 
           input.value = "";
-          _context5.next = 12;
+          _context5.next = 16;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
-        case 12:
+        case 16:
           audioStream = _context5.sent;
           initializeMediaRecorder(); // 레코더 초기화
 
           mediaRecorder.start();
 
-        case 15:
+        case 19:
         case "end":
           return _context5.stop();
       }
