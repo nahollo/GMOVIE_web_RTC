@@ -394,6 +394,7 @@ async function stopScreenShare() {
       audio: true,
       video: { deviceId: { exact: deviceId } },
     };
+
     // 화면 공유 중인 비디오 트랙 제거
     const screenTrack = myStream.getVideoTracks()[0];
     screenTrack.stop();
@@ -410,10 +411,22 @@ async function stopScreenShare() {
     const videoSender = sendPeer.getSenders().find((sender) => sender.track.kind === "video");
     videoSender.replaceTrack(videoTrack);
 
-    // Update the screen sharing status
+    if (isCameraOn) {
+      // 웹캠을 끄는 부분
+      myStream.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
+      cameraBtn.innerHTML = '<img src="img/cam_off.png" width="40" height="40">';
+    } else {
+      // 웹캠을 켜는 부분
+      myStream.getVideoTracks().forEach((track) => {
+        track.enabled = true;
+      });
+      cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
+    }
+
     isScreenSharing = false;
 
-    // Show/hide buttons based on the screen sharing status
     startShareBtn.style.display = "inline-block";
     stopShareBtn.style.display = "none";
 
@@ -422,8 +435,11 @@ async function stopScreenShare() {
   }
 }
 
+
+
 startShareBtn.style.display = isScreenSharing ? "none" : "inline-block";
 stopShareBtn.style.display = isScreenSharing ? "inline-block" : "none";
+
 
 
 socket.on("sendAnswer", async (answer) => {

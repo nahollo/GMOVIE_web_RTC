@@ -576,26 +576,39 @@ function stopScreenShare() {
           videoSender = sendPeer.getSenders().find(function (sender) {
             return sender.track.kind === "video";
           });
-          videoSender.replaceTrack(videoTrack); // Update the screen sharing status
+          videoSender.replaceTrack(videoTrack);
 
-          isScreenSharing = false; // Show/hide buttons based on the screen sharing status
+          if (isCameraOn) {
+            // 웹캠을 끄는 부분
+            myStream.getVideoTracks().forEach(function (track) {
+              track.enabled = false;
+            });
+            cameraBtn.innerHTML = '<img src="img/cam_off.png" width="40" height="40">';
+          } else {
+            // 웹캠을 켜는 부분
+            myStream.getVideoTracks().forEach(function (track) {
+              track.enabled = true;
+            });
+            cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
+          }
 
+          isScreenSharing = false;
           startShareBtn.style.display = "inline-block";
           stopShareBtn.style.display = "none";
-          _context12.next = 23;
+          _context12.next = 24;
           break;
 
-        case 20:
-          _context12.prev = 20;
+        case 21:
+          _context12.prev = 21;
           _context12.t0 = _context12["catch"](0);
           console.error("Error in stopScreenShare:", _context12.t0);
 
-        case 23:
+        case 24:
         case "end":
           return _context12.stop();
       }
     }
-  }, null, null, [[0, 20]]);
+  }, null, null, [[0, 21]]);
 }
 
 startShareBtn.style.display = isScreenSharing ? "none" : "inline-block";

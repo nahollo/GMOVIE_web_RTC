@@ -56,8 +56,8 @@
                                     style="width: 400px; height: 45px; font-size: 20px;">
                                 <div id="spacebox"></div>
                                 <div id="box2">
-                                    <button type="button" id="createRoom">회의 만들기</button>
-                                    <button type="button" id="joinRoom">회의 참여하기</button>
+                                    <button type="button" id="createRoom" style="border-radius: 5px;">회의 만들기</button>
+                                    <button type="button" id="joinRoom" style="border-radius: 5px;">회의 참여하기</button>
                                     <a href="http://localhost/calendar" onclick="openPopup(); return false;">
                                         <img src="img/calendar.png" id="calendar" />
                                     </a>
@@ -90,7 +90,7 @@
 
                         <div id="container1">
                             <div>
-                                <select id="cameras" class="custom-select"></select>
+                                <select id="cameras" class="custom-select" style="margin-left: 10px;"></select>
                             </div>
 
                             <div class="container2">
@@ -101,21 +101,23 @@
                                     <img src="img/cam_on.png" width="40" height="40"></button>
 
                                 <button type="button" id="startShareBtn">
-                                    <img src="img/shere.png" width="40" height="40"></button>
+                                    <img src="img/share.png" width="40" height="40"></button>
                                 <button type="button" id="stopShareBtn">
-                                    <img src="img/shere.png" width="40" height="40"></button>
+                                    <img src="img/share_off.png" width="40" height="40"></button>
                             </div>
 
 
                             <div id="boombox" class="container3">
                                 <button id="boom" class="hidden-button" width="100px">
-                                    <img src="img/call.png" width="40" height="40" style="margin-right:-5px; margin-left:-5px; vertical-align:middle;">
-                                    <span style="margin-top:25px;font-size:13px;" >회의 종료</span>
-                                    </button>
+                                    <img src="img/call.png" width="40" height="40"
+                                        style="margin-right:-5px; margin-left:-5px; vertical-align:middle;">
+                                    <span style="margin-top:25px;font-size:13px;">회의 종료</span>
+                                </button>
                                 <button id="endRoom" class="hidden-button" width="100px">
-                                    <img src="img/exit.png" width="40" height="40" style="margin-right:-10px; margin-left:-10px; vertical-align:middle;">
-                                    <span style="margin-top:25px;font-size:13px;" >회의 나가기</span>
-                                    </button>
+                                    <img src="img/exit.png" width="40" height="40"
+                                        style="margin-right:-10px; margin-left:-10px; vertical-align:middle;">
+                                    <span style="margin-top:25px;font-size:13px;">회의 나가기</span>
+                                </button>
                             </div>
                         </div>
                         <div id="roomName"></div>
@@ -123,7 +125,7 @@
                 </div>
             </div>
         </div>
-        
+
 
         <!-- Footer -->
         <div id="footer-wrapper">
@@ -280,6 +282,8 @@
 
         #cameras {
             height: 50px;
+            border-radius: 5px;
+            padding: 5px;
         }
 
         /* .custom-control-container {
