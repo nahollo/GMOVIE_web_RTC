@@ -1747,40 +1747,17 @@ input[type="submit"],
 input[type="reset"],
 button,
 .button {
-  background-color: #444444;
+  background-color: #2A2635;
   color: #ffffff;
   position: relative;
   display: inline-block;
-  padding: 10px 20px;
-  /* margin-left: 10px; */
   margin-right: 20px;
   font-family: NanumSquareR;
   font-size: 15px;
   text-decoration: none;
-  text-transform: uppercase;
   overflow: hidden;
-  transition: 0.5s;
-  margin-top: 10px;
-  /* margin-bottom: 30px; */
-  letter-spacing: 1.5px;
-  border-radius: 5px;
-  /* -moz-transition: background-color 0.25s ease-in-out;
-  -webkit-transition: background-color 0.25s ease-in-out;
-  -ms-transition: background-color 0.25s ease-in-out;
-  transition: background-color 0.25s ease-in-out;
-  -webkit-appearance: none;
-  position: relative;
-  display: inline-block;
-  background: #0090c5;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 800;
-  outline: 0;
-  border: 0;
-  cursor: pointer;
-  font-size: 1.35em;
-  padding: 0.6em 1.5em; */
+  margin-top: 5px;
+  border: none;
 }
 
 input[type="button"] {
@@ -1807,13 +1784,13 @@ button:hover,
   background: #b4c8ce;
 }
 
-input[type="button"]:active,
+/* input[type="button"]:active,
 input[type="submit"]:active,
 input[type="reset"]:active,
 button:active,
 .button:active {
-  /* background: #20b0e5; */
-}
+  background: #20b0e5;
+} */
 
 input[type="button"].alt,
 input[type="submit"].alt,
@@ -1825,32 +1802,32 @@ button.alt,
   color: #444;
 }
 
-input[type="button"].alt:hover,
+/* input[type="button"].alt:hover,
 input[type="submit"].alt:hover,
 input[type="reset"].alt:hover,
 button.alt:hover,
 .button.alt:hover {
-  /* background: #e8e8e8;
-  background: rgba(0, 0, 0, 0.085); */
-}
+  background: #e8e8e8;
+  background: rgba(0, 0, 0, 0.085);
+} */
 
-input[type="button"].alt:active,
+/* input[type="button"].alt:active,
 input[type="submit"].alt:active,
 input[type="reset"].alt:active,
 button.alt:active,
 .button.alt:active {
-  /* background: #e4e4e4;
-  background: rgba(0, 0, 0, 0.15); */
-}
+  background: #e4e4e4;
+  background: rgba(0, 0, 0, 0.15);
+} */
 
-input[type="button"].large,
+/* input[type="button"].large,
 input[type="submit"].large,
 input[type="reset"].large,
 button.large,
 .button.large {
-  /* font-size: 2.25em;
-  padding: 0.8em 0.9em; */
-}
+  font-size: 2.25em;
+  padding: 0.8em 0.9em;
+} */
 
 /* List */
 
@@ -2253,7 +2230,7 @@ ul.menu li:first-child {
 }
 
 #banner p {
-  font-size: 2.75em;
+  font-size: 15px;
   line-height: 1.35em;
   margin: 0;
 }
@@ -2306,7 +2283,7 @@ ul.menu li:first-child {
 #banner ul {
   list-style: none;
   padding-left: 0;
-  margin: 0 0 0 2em;
+  /* margin: 0 0 0 2em; */
 }
 
 #banner ul li {

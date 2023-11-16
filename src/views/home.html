@@ -70,168 +70,173 @@
             </div>
         </div>
     </div>
+
+
+
     <div id="banner" class="box container">
         <div class="row">
             <div class="col-7 col-12-medium">
-                <div class="text-box">
-                    <div class="center-container">
-                        <div id="call" hidden>
-                            <div id="otherStream"></div>
+                <!-- <div class="text-box"> -->
+                <div class="center-container">
+                    <div id="call" hidden>
+                        <div id="otherStream"></div>
 
-                            <div id="myStream">
-                                <video id="myFace" autoplay playsinline width="500" height="376"
-                                    style="border: 1px solid #000;"></video>
+                        <div id="myStream">
+                            <video id="myFace" autoplay playsinline width="500" height="376"
+                                style="border: 1px solid #000;"></video>
+                        </div>
+
+                        <br>
+
+                        <div id="container1">
+                            <div>
+                                <select id="cameras" class="custom-select"></select>
                             </div>
 
-                            <br>
-                            <h1 id="roomName"></h1>
+                            <div class="container2">
+                                <button id="mute" class="custom-button">
+                                    <img src="img/mic_on.png" width="40" height="40"></button>
 
-                            <div class="custom-control-container">
-                                <!-- <h1 id="roomName"></h1> -->
+                                <button id="camera" class="custom-button">
+                                    <img src="img/cam_on.png" width="40" height="40"></button>
 
-                                <!-- <div class="container1"> -->
-                                <select id="cameras" class="custom-select"></select>
-                                <!-- </div> -->
-
-
-                                <div class="container2">
-                                    <button id="mute" class="custom-button" style="background-color: #D6D6D6;"><img
-                                            src="img/micOn.png" width="40" height="40" background-color:
-                                            #D6D6D6;></button>
-                                    <button id="camera" class="custom-button" style="background-color: #D6D6D6;"><img
-                                            src="img/camOn.png" width="40" height="40"></button>
-                                    <button type="button" id="startShareBtn">화면 공유 시작</button>
-                                    <button type="button" id="stopShareBtn">화면 공유 중지</button>
-                                </div>
+                                <button type="button" id="startShareBtn">
+                                    <img src="img/shere.png" width="40" height="40"></button>
+                                <button type="button" id="stopShareBtn">
+                                    <img src="img/shere.png" width="40" height="40"></button>
+                            </div>
 
 
-                                <div id="boombox" class="container3">
-                                    <button id="boom" class="hidden-button" width="100px">회의 종료하기</button>
-                                    <button id="endRoom" class="hidden-button" width="100px">회의 나가기</button>
-                                </div>
-
-
-                                <!-- <div id="endbox"> -->
-                                <!-- <button id="endRoom" class="hidden-button" width="100px">회의 나가기</button> -->
-                                <!-- </div> -->
+                            <div id="boombox" class="container3">
+                                <button id="boom" class="hidden-button" width="100px">
+                                    <img src="img/call.png" width="40" height="40" style="margin-right:-5px; margin-left:-5px; vertical-align:middle;">
+                                    <span style="margin-top:25px;font-size:13px;" >회의 종료</span>
+                                    </button>
+                                <button id="endRoom" class="hidden-button" width="100px">
+                                    <img src="img/exit.png" width="40" height="40" style="margin-right:-10px; margin-left:-10px; vertical-align:middle;">
+                                    <span style="margin-top:25px;font-size:13px;" >회의 나가기</span>
+                                    </button>
                             </div>
                         </div>
+                        <div id="roomName"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        
 
-    <!-- Footer -->
-    <div id="footer-wrapper">
-        <footer id="footer" class="container">
-            <div class="row">
-                <div class="col-3 col-6-medium col-12-small">
-                    <section class="widget links">
-                        <h3>Thanks for</h3>
-                        <ul class="style2">
-                            <li>
-                                <p>Parent</p>
-                            </li>
-                            <li>
-                                <p>Mol 13Class Professor</p>
-                            </li>
-                            <li>
-                                <p>Bit Education Center</p>
-                            </li>
-                            <li>
-                                <p>SM SW Office</p>
-                            </li>
-                        </ul>
-                    </section>
+        <!-- Footer -->
+        <div id="footer-wrapper">
+            <footer id="footer" class="container">
+                <div class="row">
+                    <div class="col-3 col-6-medium col-12-small">
+                        <section class="widget links">
+                            <h3>Thanks for</h3>
+                            <ul class="style2">
+                                <li>
+                                    <p>Parent</p>
+                                </li>
+                                <li>
+                                    <p>Mol 13Class Professor</p>
+                                </li>
+                                <li>
+                                    <p>Bit Education Center</p>
+                                </li>
+                                <li>
+                                    <p>SM SW Office</p>
+                                </li>
+                            </ul>
+                        </section>
 
-                </div>
-                <div class="col-3 col-6-medium col-12-small">
+                    </div>
+                    <div class="col-3 col-6-medium col-12-small">
 
-                    <section class="widget links">
-                        <h3>Developer</h3>
-                        <ul class="style2">
+                        <section class="widget links">
+                            <h3>Developer</h3>
+                            <ul class="style2">
 
 
-                            <li>
-                                <p>Na HyeongJin</p>
-                            </li>
-                            <li>
-                                <p>Lee GwangHui</p>
-                            </li>
-                            <li>
-                                <p>WANG CHIANG LING</p>
-                            </li>
-                            <li>
-                                <p>Jung KyeongHee</p>
-                            </li>
-                        </ul>
-                    </section>
+                                <li>
+                                    <p>Na HyeongJin</p>
+                                </li>
+                                <li>
+                                    <p>Lee GwangHui</p>
+                                </li>
+                                <li>
+                                    <p>WANG CHIANG LING</p>
+                                </li>
+                                <li>
+                                    <p>Jung KyeongHee</p>
+                                </li>
+                            </ul>
+                        </section>
 
-                </div>
-                <div class="col-3 col-6-medium col-12-small">
+                    </div>
+                    <div class="col-3 col-6-medium col-12-small">
 
-                    <section class="widget links">
-                        <h3>INFO</h3>
-                        <ul class="style2">
-                            <li>
-                                <h1>Address</h1>
-                            </li>
-                            <li>
-                                <p>70 Sunmoon-ro 221, Tangjeong-myeon<br />
-                                    Asan-si, Chungcheongnam-do
-                                </p>+
-                            </li>
-                            <li>
-                                <h1>tel</h1>
-                            </li>
-                            <li>
-                                <p>(041) 530-2114</p>
-                            </li>
-                            <li>
-                                <h1>Email</h1>
-                            </li>
-                            <li>
-                                <p>gmovieoffice@gmail.com</p>
-                            </li>
-                        </ul>
-                    </section>
+                        <section class="widget links">
+                            <h3>INFO</h3>
+                            <ul class="style2">
+                                <li>
+                                    <h1>Address</h1>
+                                </li>
+                                <li>
+                                    <p>70 Sunmoon-ro 221, Tangjeong-myeon<br />
+                                        Asan-si, Chungcheongnam-do
+                                    </p>+
+                                </li>
+                                <li>
+                                    <h1>tel</h1>
+                                </li>
+                                <li>
+                                    <p>(041) 530-2114</p>
+                                </li>
+                                <li>
+                                    <h1>Email</h1>
+                                </li>
+                                <li>
+                                    <p>gmovieoffice@gmail.com</p>
+                                </li>
+                            </ul>
+                        </section>
 
-                </div>
-                <div class="col-3 col-6-medium col-12-small">
+                    </div>
+                    <div class="col-3 col-6-medium col-12-small">
 
-                    <!-- Contact -->
-                    <section class="widget contact last">
-                        <h3>Contact Us</h3>
-                        <ul>
-                            <li><a href="https://www.instagram.com/skgudwlsdlrj/?hl=ko"
-                                    class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
-                            <li><a href="https://github.com/nahollo" class="icon brands fa-brands fa-github"><span
-                                        class="label">Dribbble</span></a></li>
-                            <li><a href="https://na-hollo.tistory.com/" class="icon brands fa-brands fa-blogger"><span
-                                        class="label">Pinterest</span></a></li>
-                        </ul>
-                    </section>
+                        <!-- Contact -->
+                        <section class="widget contact last">
+                            <h3>Contact Us</h3>
+                            <ul>
+                                <li><a href="https://www.instagram.com/skgudwlsdlrj/?hl=ko"
+                                        class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+                                <li><a href="https://github.com/nahollo" class="icon brands fa-brands fa-github"><span
+                                            class="label">Dribbble</span></a></li>
+                                <li><a href="https://na-hollo.tistory.com/"
+                                        class="icon brands fa-brands fa-blogger"><span
+                                            class="label">Pinterest</span></a></li>
+                            </ul>
+                        </section>
 
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div id="copyright">
-                        <ul class="menu">
-                            <li>&copy; GMOVIE</li>
-                            <li>Design: nahollo </a></li>
-                        </ul>
                     </div>
                 </div>
-            </div>
-        </footer>
-    </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div id="copyright">
+                            <ul class="menu">
+                                <li>&copy; GMOVIE</li>
+                                <li>Design: nahollo </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/js/app.js"></script>
     <script src="/js/script.js"></script>
+
     <style>
         #banner {
             background-color: #f7f7f7;
@@ -264,33 +269,40 @@
             margin-bottom: 25px;
         }
 
-        #cameras {
-            margin-bottom: 55px;
+        #container1 {
+            display: flex;
+            background-color: #2A2635;
+            height: 80px;
+            flex-direction: row;
+            justify-content: space-between;
+            padding-top: 15px;
         }
 
-        .custom-control-container {
-            /* background-color: yellow; */
-            display: flex;
-            /* flex-direction: column; */
-            justify-content: space-between;
+        #cameras {
+            height: 50px;
         }
+
+        /* .custom-control-container {
+            background-color: yellow;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        } */
 
         .container2 {
-            margin-left: 140px;
-            margin-bottom: 25px;
+            margin-right: 35px;
+            flex-direction: row;
         }
 
         .container3 {
-            /* margin-bottom: 20px; */
-            margin-left: 20px;
+            display: flex;
         }
 
         #roomName {
-            font-size: 14px;
+            font-size: 15px;
             font-family: NanumSquareR;
             font-weight: bold;
         }
-
 
         #otherStream {
             display: flex;
@@ -298,9 +310,7 @@
             align-items: center;
             background-color: #F7F7F7;
             padding: 15px;
-            /* border: 1px solid #999; */
             border-radius: 8px;
-            /* box-shadow: 3px 3px 5px #888; */
         }
 
         #myStream {
@@ -312,22 +322,19 @@
         }
 
         .hidden-button {
-            background-color: #444444;
+            background-color: #DE3E3B;
             color: #ffffff;
             position: relative;
-            display: inline-block;
-            padding: 10px 15px;
             font-family: NanumSquareR;
             font-size: 12px;
             text-decoration: none;
             text-transform: uppercase;
             overflow: hidden;
-            transition: 0.5s;
-            letter-spacing: 1.5px;
-            border-radius: 5px;
+            border-radius: 8px;
             white-space: nowrap;
-            width: 120px;
+            width: 130px;
             display: none;
+            margin-bottom: 15px;
         }
 
         .hidden-button:hover {

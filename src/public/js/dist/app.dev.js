@@ -152,12 +152,12 @@ function handleMuteClick() {
   });
 
   if (isMuted) {
-    muteBtn.innerHTML = '<img src="img/micOn.png" width="40" height="40">';
-    muteBtn.style.backgroundColor = "#D6D6D6";
+    muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">'; // muteBtn.style.backgroundColor = "#D6D6D6"
+
     isMuted = false;
   } else {
-    muteBtn.innerHTML = '<img src="img/micOff.png" width="40" height="40">';
-    muteBtn.style.backgroundColor = "#909090";
+    muteBtn.innerHTML = '<img src="img/mic_off.png" width="40" height="40">'; // muteBtn.style.backgroundColor = "#909090"
+
     isMuted = true;
   }
 }
@@ -168,12 +168,12 @@ function handleCameraClick() {
   });
 
   if (isCameraOn) {
-    cameraBtn.innerHTML = '<img src="img/camOn.png" width="40" height="40">';
-    cameraBtn.style.backgroundColor = "#D6D6D6";
+    cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">'; // cameraBtn.style.backgroundColor = "#D6D6D6"
+
     isCameraOn = false;
   } else {
-    cameraBtn.innerHTML = '<img src="img/camOff.png" width="40" height="40">';
-    cameraBtn.style.backgroundColor = "#909090";
+    cameraBtn.innerHTML = '<img src="img/cam_off.png" width="40" height="40">'; // cameraBtn.style.backgroundColor = "#909090"
+
     isCameraOn = true;
   }
 }
