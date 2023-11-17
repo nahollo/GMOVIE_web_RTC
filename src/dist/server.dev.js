@@ -51,6 +51,7 @@ var recvPeerMap = new Map(); // 특정 room의 user Stream을 처리하기 위�
 // Map<roomName, Map<socketId, Stream>>(); Stream = data.streams[0]
 
 var streamMap = new Map();
+var roomList = [];
 
 var fs = require("fs");
 
@@ -75,24 +76,57 @@ function getUserRoomList(socket) {
 
 wsServer.on("connection", function (socket) {
   var nickname = socket.id;
-  socket.on("join_room", function (roomName, date) {
-    var room = wsServer.sockets.adapter.rooms.get(roomName);
-    var idList = room ? _toConsumableArray(room) : [];
+  socket.on("join_room", function (roomName, date, check) {
+    if (check === 1) {
+      roomList.push(roomName);
+      var room = wsServer.sockets.adapter.rooms.get(roomName);
+      var idList = room ? _toConsumableArray(room) : [];
 
-    if (dateMap.has(roomName)) {
-      distanceDate = date - dateMap.get(roomName);
-      userDateMap.set(socket.id, distanceDate);
-    } else {
-      dateMap.set(roomName, date);
-      userDateMap.set(socket.id, 0);
+      if (dateMap.has(roomName)) {
+        distanceDate = date - dateMap.get(roomName);
+        userDateMap.set(socket.id, distanceDate);
+      } else {
+        dateMap.set(roomName, date);
+        userDateMap.set(socket.id, 0);
+      }
+
+      console.log(idList);
+      socket.emit("user_list", idList);
+      socket.emit("nickname", nickname);
+      console.log("join_room id = " + socket.id);
+      socket.join(roomName);
+      socket.roomName = roomName;
+    } else if (check === 0) {
+      console.log("join roomList : ", roomList);
+
+      if (roomList.includes(roomName)) {
+        var _room = wsServer.sockets.adapter.rooms.get(roomName);
+
+        var _idList = _room ? _toConsumableArray(_room) : [];
+
+        if (dateMap.has(roomName)) {
+          distanceDate = date - dateMap.get(roomName);
+          userDateMap.set(socket.id, distanceDate);
+        } else {
+          dateMap.set(roomName, date);
+          userDateMap.set(socket.id, 0);
+        }
+
+        console.log(_idList);
+        socket.emit("user_list", _idList);
+        socket.emit("nickname", nickname);
+        console.log("join_room id = " + socket.id);
+        socket.join(roomName);
+        socket.roomName = roomName;
+      } else {
+        console.log("Room ".concat(roomName, " does not exist. Cannot join."));
+      }
     }
-
-    console.log(idList);
-    socket.emit("user_list", idList);
-    socket.emit("nickname", nickname);
-    console.log("join_room id = " + socket.id);
-    socket.join(roomName);
-    socket.roomName = roomName;
+  });
+  socket.on("check_room_existence", function (roomName) {
+    var room = wsServer.sockets.adapter.rooms.get(roomName);
+    var roomExists = roomList.includes(roomName);
+    socket.emit("room_existence_response", roomExists);
   });
   socket.on("recvOffer", function _callee(offer, sendId) {
     return regeneratorRuntime.async(function _callee$(_context) {

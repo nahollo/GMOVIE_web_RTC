@@ -178,20 +178,44 @@ async function handleWelcome(event) {
     isCameraOn = false;
     cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
     muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
-    await initCall();
-    endRoomBtn.style.display = "inline-block";
 
-    const myDate = new Date();
-    socket.emit("join_room", input.value, myDate.getTime());
-    roomName = input.value;
-    console.log("roomName:", roomName); // 로그로 값 확인
-    input.value = "";
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // 방이 이미 존재하는지 확인
+    const roomExists = await checkRoomExistence(input.value);
 
-    initializeMediaRecorder(); // 레코더 초기화
-    mediaRecorder.start();
+    if (roomExists) {
+      // 방에 참여 가능한 경우
+      await initCall();
+      endRoomBtn.style.display = "inline-block";
+
+      const myDate = new Date();
+      socket.emit("join_room", input.value, myDate.getTime(), 0);
+      roomName = input.value;
+      console.log("roomName:", roomName); // 로그로 값 확인
+      input.value = "";
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      initializeMediaRecorder(); // 레코더 초기화
+      mediaRecorder.start();
+    } else {
+      // 방이 존재하지 않는 경우
+      alert("존재하지 않는 회의방입니다.");
+      // 존재하지 않는 방에 대한 처리 (예: 알림)
+    }
   }
 }
+
+
+async function checkRoomExistence(roomName) {
+  // 서버로 방의 존재 여부를 확인하는 요청을 보내고, 응답을 받아 처리
+  return new Promise((resolve) => {
+    socket.emit("check_room_existence", roomName);
+    socket.once("room_existence_response", (exists) => {
+      resolve(exists);
+    });
+  });
+}
+
+
 
 async function handleCreateNewRoom(event) {
   event.preventDefault();
@@ -202,7 +226,7 @@ async function handleCreateNewRoom(event) {
   const roomName = `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`;
   await initCall();
   const startDate = new Date();
-  socket.emit("join_room", roomName, startDate.getTime());
+  socket.emit("join_room", roomName, startDate.getTime(), 1);
   console.log("roomName:", roomName);
   roomNameDiv.innerText = `회의 코드 : ${roomName}`;
   callDiv.appendChild(roomNameDiv);

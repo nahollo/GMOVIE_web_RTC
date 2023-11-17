@@ -235,7 +235,7 @@ function initCall() {
 }
 
 function handleWelcome(event) {
-  var input, myDate;
+  var input, roomExists, myDate;
   return regeneratorRuntime.async(function handleWelcome$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
@@ -249,7 +249,7 @@ function handleWelcome(event) {
           }
 
           alert("회의방 코드를 입력해주세요.");
-          _context5.next = 23;
+          _context5.next = 30;
           break;
 
         case 6:
@@ -257,30 +257,48 @@ function handleWelcome(event) {
 
           isCameraOn = false;
           cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
-          muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
+          muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">'; // 방이 이미 존재하는지 확인
+
           _context5.next = 12;
-          return regeneratorRuntime.awrap(initCall());
+          return regeneratorRuntime.awrap(checkRoomExistence(input.value));
 
         case 12:
+          roomExists = _context5.sent;
+
+          if (!roomExists) {
+            _context5.next = 29;
+            break;
+          }
+
+          _context5.next = 16;
+          return regeneratorRuntime.awrap(initCall());
+
+        case 16:
           endRoomBtn.style.display = "inline-block";
           myDate = new Date();
-          socket.emit("join_room", input.value, myDate.getTime());
+          socket.emit("join_room", input.value, myDate.getTime(), 0);
           roomName = input.value;
           console.log("roomName:", roomName); // 로그로 값 확인
 
           input.value = "";
-          _context5.next = 20;
+          _context5.next = 24;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
-        case 20:
+        case 24:
           audioStream = _context5.sent;
           initializeMediaRecorder(); // 레코더 초기화
 
           mediaRecorder.start();
+          _context5.next = 30;
+          break;
 
-        case 23:
+        case 29:
+          // 방이 존재하지 않는 경우
+          alert("존재하지 않는 회의방입니다."); // 존재하지 않는 방에 대한 처리 (예: 알림)
+
+        case 30:
         case "end":
           return _context5.stop();
       }
@@ -288,11 +306,31 @@ function handleWelcome(event) {
   });
 }
 
-function handleCreateNewRoom(event) {
-  var roomName, startDate;
-  return regeneratorRuntime.async(function handleCreateNewRoom$(_context6) {
+function checkRoomExistence(roomName) {
+  return regeneratorRuntime.async(function checkRoomExistence$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
+        case 0:
+          return _context6.abrupt("return", new Promise(function (resolve) {
+            socket.emit("check_room_existence", roomName);
+            socket.once("room_existence_response", function (exists) {
+              resolve(exists);
+            });
+          }));
+
+        case 1:
+        case "end":
+          return _context6.stop();
+      }
+    }
+  });
+}
+
+function handleCreateNewRoom(event) {
+  var roomName, startDate;
+  return regeneratorRuntime.async(function handleCreateNewRoom$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
         case 0:
           event.preventDefault();
           isMuted = false; // 마이크 미소거 상태 초기화
@@ -301,29 +339,29 @@ function handleCreateNewRoom(event) {
           cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
           muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
           roomName = "".concat(Math.floor(100 + Math.random() * 900), "-").concat(Math.floor(100 + Math.random() * 900), "-").concat(Math.floor(1000 + Math.random() * 9000));
-          _context6.next = 8;
+          _context7.next = 8;
           return regeneratorRuntime.awrap(initCall());
 
         case 8:
           startDate = new Date();
-          socket.emit("join_room", roomName, startDate.getTime());
+          socket.emit("join_room", roomName, startDate.getTime(), 1);
           console.log("roomName:", roomName);
           roomNameDiv.innerText = "\uD68C\uC758 \uCF54\uB4DC : ".concat(roomName);
           callDiv.appendChild(roomNameDiv);
           boomBtn.style.display = "inline-block";
-          _context6.next = 16;
+          _context7.next = 16;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
         case 16:
-          audioStream = _context6.sent;
+          audioStream = _context7.sent;
           initializeMediaRecorder();
           mediaRecorder.start();
 
         case 19:
         case "end":
-          return _context6.stop();
+          return _context7.stop();
       }
     }
   });
@@ -347,31 +385,31 @@ socket.on("nickname", function (data) {
   console.log("nickname : " + nickname);
 });
 socket.on("recvCandidate", function _callee(candidate, sendId) {
-  return regeneratorRuntime.async(function _callee$(_context7) {
+  return regeneratorRuntime.async(function _callee$(_context8) {
     while (1) {
-      switch (_context7.prev = _context7.next) {
+      switch (_context8.prev = _context8.next) {
         case 0:
           console.log("got recvCandidate from server");
           recvPeerMap.get(sendId).addIceCandidate(candidate);
 
         case 2:
         case "end":
-          return _context7.stop();
+          return _context8.stop();
       }
     }
   });
 });
 socket.on("sendCandidate", function _callee2(candidate) {
-  return regeneratorRuntime.async(function _callee2$(_context8) {
+  return regeneratorRuntime.async(function _callee2$(_context9) {
     while (1) {
-      switch (_context8.prev = _context8.next) {
+      switch (_context9.prev = _context9.next) {
         case 0:
           console.log("got sendCandidate from server");
           sendPeer.addIceCandidate(candidate);
 
         case 2:
         case "end":
-          return _context8.stop();
+          return _context9.stop();
       }
     }
   });
@@ -410,25 +448,25 @@ endRoomBtn.addEventListener("click", function () {
 
 function createSendOffer() {
   var offer;
-  return regeneratorRuntime.async(function createSendOffer$(_context9) {
+  return regeneratorRuntime.async(function createSendOffer$(_context10) {
     while (1) {
-      switch (_context9.prev = _context9.next) {
+      switch (_context10.prev = _context10.next) {
         case 0:
           console.log("createSendOffer");
-          _context9.next = 3;
+          _context10.next = 3;
           return regeneratorRuntime.awrap(sendPeer.createOffer({
             offerToReceiveVideo: false,
             offerToReceiveAudio: false
           }));
 
         case 3:
-          offer = _context9.sent;
+          offer = _context10.sent;
           sendPeer.setLocalDescription(offer);
           socket.emit("sendOffer", offer);
 
         case 6:
         case "end":
-          return _context9.stop();
+          return _context10.stop();
       }
     }
   });
@@ -484,26 +522,26 @@ function createRecvPeer(sendId) {
 
 function createRecvOffer(sendId) {
   var offer;
-  return regeneratorRuntime.async(function createRecvOffer$(_context10) {
+  return regeneratorRuntime.async(function createRecvOffer$(_context11) {
     while (1) {
-      switch (_context10.prev = _context10.next) {
+      switch (_context11.prev = _context11.next) {
         case 0:
           console.log("createRecvOffer sendId = ".concat(sendId));
-          _context10.next = 3;
+          _context11.next = 3;
           return regeneratorRuntime.awrap(recvPeerMap.get(sendId).createOffer({
             offerToReceiveVideo: true,
             offerToReceiveAudio: true
           }));
 
         case 3:
-          offer = _context10.sent;
+          offer = _context11.sent;
           recvPeerMap.get(sendId).setLocalDescription(offer);
           console.log("send recvOffer to server");
           socket.emit("recvOffer", offer, sendId);
 
         case 7:
         case "end":
-          return _context10.stop();
+          return _context11.stop();
       }
     }
   });
@@ -511,16 +549,16 @@ function createRecvOffer(sendId) {
 
 function startScreenShare() {
   var screenStream, shareInfo, videoTrack, myVideo, webcamTrack, screenSender;
-  return regeneratorRuntime.async(function startScreenShare$(_context11) {
+  return regeneratorRuntime.async(function startScreenShare$(_context12) {
     while (1) {
-      switch (_context11.prev = _context11.next) {
+      switch (_context12.prev = _context12.next) {
         case 0:
-          _context11.prev = 0;
-          _context11.next = 3;
+          _context12.prev = 0;
+          _context12.next = 3;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getDisplayMedia());
 
         case 3:
-          screenStream = _context11.sent;
+          screenStream = _context12.sent;
           shareInfo = {
             roomName: roomName,
             screenStream: screenStream
@@ -542,17 +580,17 @@ function startScreenShare() {
 
           startShareBtn.style.display = "none";
           stopShareBtn.style.display = "inline-block";
-          _context11.next = 23;
+          _context12.next = 23;
           break;
 
         case 20:
-          _context11.prev = 20;
-          _context11.t0 = _context11["catch"](0);
-          console.error("Error starting screen share:", _context11.t0);
+          _context12.prev = 20;
+          _context12.t0 = _context12["catch"](0);
+          console.error("Error starting screen share:", _context12.t0);
 
         case 23:
         case "end":
-          return _context11.stop();
+          return _context12.stop();
       }
     }
   }, null, null, [[0, 20]]);
@@ -560,11 +598,11 @@ function startScreenShare() {
 
 function stopScreenShare() {
   var deviceId, initialConstraint, cameraConstraints, screenTrack, videoTrack, videoSender;
-  return regeneratorRuntime.async(function stopScreenShare$(_context12) {
+  return regeneratorRuntime.async(function stopScreenShare$(_context13) {
     while (1) {
-      switch (_context12.prev = _context12.next) {
+      switch (_context13.prev = _context13.next) {
         case 0:
-          _context12.prev = 0;
+          _context13.prev = 0;
           socket.emit("stopScreenShare", roomName);
           deviceId = camerasSelect.value;
           initialConstraint = {
@@ -586,11 +624,11 @@ function stopScreenShare() {
           screenTrack.stop();
           myStream.removeTrack(screenTrack); // 웹캠 비디오 트랙 다시 얻어오기
 
-          _context12.next = 10;
+          _context13.next = 10;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia(deviceId ? cameraConstraints : initialConstraint));
 
         case 10:
-          myStream = _context12.sent;
+          myStream = _context13.sent;
           myFace.srcObject = myStream; // 웹캠 비디오 트랙을 PeerConnection에 추가
 
           videoTrack = myStream.getVideoTracks()[0];
@@ -616,17 +654,17 @@ function stopScreenShare() {
           isScreenSharing = false;
           startShareBtn.style.display = "inline-block";
           stopShareBtn.style.display = "none";
-          _context12.next = 24;
+          _context13.next = 24;
           break;
 
         case 21:
-          _context12.prev = 21;
-          _context12.t0 = _context12["catch"](0);
-          console.error("Error in stopScreenShare:", _context12.t0);
+          _context13.prev = 21;
+          _context13.t0 = _context13["catch"](0);
+          console.error("Error in stopScreenShare:", _context13.t0);
 
         case 24:
         case "end":
-          return _context12.stop();
+          return _context13.stop();
       }
     }
   }, null, null, [[0, 21]]);
@@ -635,31 +673,31 @@ function stopScreenShare() {
 startShareBtn.style.display = isScreenSharing ? "none" : "inline-block";
 stopShareBtn.style.display = isScreenSharing ? "inline-block" : "none";
 socket.on("sendAnswer", function _callee3(answer) {
-  return regeneratorRuntime.async(function _callee3$(_context13) {
+  return regeneratorRuntime.async(function _callee3$(_context14) {
     while (1) {
-      switch (_context13.prev = _context13.next) {
+      switch (_context14.prev = _context14.next) {
         case 0:
           console.log("got sendAnswer from server");
           sendPeer.setRemoteDescription(answer);
 
         case 2:
         case "end":
-          return _context13.stop();
+          return _context14.stop();
       }
     }
   });
 });
 socket.on("recvAnswer", function _callee4(answer, sendId) {
-  return regeneratorRuntime.async(function _callee4$(_context14) {
+  return regeneratorRuntime.async(function _callee4$(_context15) {
     while (1) {
-      switch (_context14.prev = _context14.next) {
+      switch (_context15.prev = _context15.next) {
         case 0:
           console.log("got recvAnswer from server");
           recvPeerMap.get(sendId).setRemoteDescription(answer);
 
         case 2:
         case "end":
-          return _context14.stop();
+          return _context15.stop();
       }
     }
   });
