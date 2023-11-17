@@ -544,7 +544,7 @@ table {
 
 .row {
   margin-top: -40px;
-  margin-left: -40px;
+  margin-left: 100px;
 }
 
 .row > * {
@@ -1747,7 +1747,7 @@ input[type="submit"],
 input[type="reset"],
 button,
 .button {
-  background-color: #2A2635;
+  background-color: #2a2635;
   color: #ffffff;
   position: relative;
   display: inline-block;

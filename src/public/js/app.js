@@ -174,8 +174,13 @@ async function handleWelcome(event) {
   if (!input.value) {
     alert("회의방 코드를 입력해주세요.");
   } else {
+    isMuted = false; // 마이크 미소거 상태 초기화
+    isCameraOn = false;
+    cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
+    muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
     await initCall();
     endRoomBtn.style.display = "inline-block";
+
     const myDate = new Date();
     socket.emit("join_room", input.value, myDate.getTime());
     roomName = input.value;
@@ -190,6 +195,10 @@ async function handleWelcome(event) {
 
 async function handleCreateNewRoom(event) {
   event.preventDefault();
+  isMuted = false; // 마이크 미소거 상태 초기화
+  isCameraOn = false;
+  cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
+  muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
   const roomName = `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`;
   await initCall();
   const startDate = new Date();
@@ -520,6 +529,8 @@ socket.on("exit_all", () => {
   myStream.getTracks().forEach((track) => {
     track.stop(); // 각 트랙을 정지합니다.
   });
+  socket.emit("leaveRoom", roomName);
+
 
   myFace.srcObject = null; // 화면에서 비디오 스트림을 제거합니다.
 

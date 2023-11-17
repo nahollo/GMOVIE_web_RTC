@@ -249,14 +249,19 @@ function handleWelcome(event) {
           }
 
           alert("회의방 코드를 입력해주세요.");
-          _context5.next = 19;
+          _context5.next = 23;
           break;
 
         case 6:
-          _context5.next = 8;
+          isMuted = false; // 마이크 미소거 상태 초기화
+
+          isCameraOn = false;
+          cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
+          muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
+          _context5.next = 12;
           return regeneratorRuntime.awrap(initCall());
 
-        case 8:
+        case 12:
           endRoomBtn.style.display = "inline-block";
           myDate = new Date();
           socket.emit("join_room", input.value, myDate.getTime());
@@ -264,18 +269,18 @@ function handleWelcome(event) {
           console.log("roomName:", roomName); // 로그로 값 확인
 
           input.value = "";
-          _context5.next = 16;
+          _context5.next = 20;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
-        case 16:
+        case 20:
           audioStream = _context5.sent;
           initializeMediaRecorder(); // 레코더 초기화
 
           mediaRecorder.start();
 
-        case 19:
+        case 23:
         case "end":
           return _context5.stop();
       }
@@ -290,28 +295,33 @@ function handleCreateNewRoom(event) {
       switch (_context6.prev = _context6.next) {
         case 0:
           event.preventDefault();
+          isMuted = false; // 마이크 미소거 상태 초기화
+
+          isCameraOn = false;
+          cameraBtn.innerHTML = '<img src="img/cam_on.png" width="40" height="40">';
+          muteBtn.innerHTML = '<img src="img/mic_on.png" width="40" height="40">';
           roomName = "".concat(Math.floor(100 + Math.random() * 900), "-").concat(Math.floor(100 + Math.random() * 900), "-").concat(Math.floor(1000 + Math.random() * 9000));
-          _context6.next = 4;
+          _context6.next = 8;
           return regeneratorRuntime.awrap(initCall());
 
-        case 4:
+        case 8:
           startDate = new Date();
           socket.emit("join_room", roomName, startDate.getTime());
           console.log("roomName:", roomName);
           roomNameDiv.innerText = "\uD68C\uC758 \uCF54\uB4DC : ".concat(roomName);
           callDiv.appendChild(roomNameDiv);
           boomBtn.style.display = "inline-block";
-          _context6.next = 12;
+          _context6.next = 16;
           return regeneratorRuntime.awrap(navigator.mediaDevices.getUserMedia({
             audio: true
           }));
 
-        case 12:
+        case 16:
           audioStream = _context6.sent;
           initializeMediaRecorder();
           mediaRecorder.start();
 
-        case 15:
+        case 19:
         case "end":
           return _context6.stop();
       }
@@ -718,6 +728,7 @@ socket.on("exit_all", function () {
   myStream.getTracks().forEach(function (track) {
     track.stop(); // 각 트랙을 정지합니다.
   });
+  socket.emit("leaveRoom", roomName);
   myFace.srcObject = null; // 화면에서 비디오 스트림을 제거합니다.
   // UI에서 회의방 관련 엘리먼트를 숨김 또는 초기화
 
