@@ -320,7 +320,7 @@ wsServer.on("connection", (socket) => {
 
   socket.on("boom", () => {
     const roomName = socket.roomName;
-
+    console.log("boom roomName : ",roomName);
 
     // 방의 모든 사용자에게 나가라는 신호를 보냅니다.
     wsServer.to(roomName).emit("exit_all");
@@ -331,7 +331,15 @@ wsServer.on("connection", (socket) => {
         userSocket.leave(roomName);
       });
     });
+
+    // roomList에서 현재 방을 찾아 제거합니다.
+    const roomListIndex = roomList.indexOf(roomName);
+    if (roomListIndex !== -1) {
+      roomList.splice(roomListIndex, 1);
+      console.log("boom roomList : ", roomList);
+    }
   });
+
 
   function createRecvPeer() {
     let recvPeer = new wrtc.RTCPeerConnection({

@@ -341,7 +341,8 @@ wsServer.on("connection", function (socket) {
     }
   });
   socket.on("boom", function () {
-    var roomName = socket.roomName; // 방의 모든 사용자에게 나가라는 신호를 보냅니다.
+    var roomName = socket.roomName;
+    console.log("boom roomName : ", roomName); // 방의 모든 사용자에게 나가라는 신호를 보냅니다.
 
     wsServer.to(roomName).emit("exit_all"); // 모든 사용자를 방에서 나가게 만듭니다.
 
@@ -349,7 +350,14 @@ wsServer.on("connection", function (socket) {
       sockets.forEach(function (userSocket) {
         userSocket.leave(roomName);
       });
-    });
+    }); // roomList에서 현재 방을 찾아 제거합니다.
+
+    var roomListIndex = roomList.indexOf(roomName);
+
+    if (roomListIndex !== -1) {
+      roomList.splice(roomListIndex, 1);
+      console.log("boom roomList : ", roomList);
+    }
   });
 
   function createRecvPeer() {
