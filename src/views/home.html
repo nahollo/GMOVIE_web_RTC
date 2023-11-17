@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="css/main.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css">
-
 </head>
 
 <body class="is-preload homepage">
@@ -27,7 +26,7 @@
                 <!-- 네비 -->
                 <nav id="nav">
                     <ul>
-                        <li class="current"><a href="home">home</a></li>
+                        <li><a href="home">home</a></li>
                         <li><a href="service">service</a></li>
                         <li><a href="aboutus">About us</a></li>
                         <li><a href="developer">Developer</a></li>
@@ -43,15 +42,15 @@
             <div class="row">
                 <div class="col-7 col-12-medium">
                     <form id="welcomeForm">
-                        <div id="box" style="margin-left: 280px;">
+                        <div id="box">
                             <input type="text" placeholder="회의 코드 입력" required id="inputRoomName"
-                                    style="width: 400px; height: 45px; font-size: 20px;">
+                                style="width: 400px; height: 45px; font-size: 20px;">
                             <div id="spacebox"></div>
                             <div id="box2">
-                                <button type="button" id="createRoom" style="border-radius: 10px; padding: 10px 20px;">회의 만들기</button>
-                                <button type="button" id="joinRoom" style="border-radius: 10px; padding: 10px 20px;">회의 참여하기</button>
+                                <button type="button" id="createRoom" style="border-radius: 10px; border: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">회의 만들기</button>
+                                <button type="button" id="joinRoom" style="border-radius: 10px; border: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);">회의 참여하기</button>
                                 <a href="http://localhost/calendar" onclick="openPopup(); return false;">
-                                   <img src="img/calendar.png" id="calendar" style="border-radius: 10px;"/>
+                                    <img src="img/calendar.png" id="calendar" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);" />
                                 </a>
 
                             </div>
@@ -79,13 +78,13 @@
 
                         <div id="container1">
                             <div>
-                                <select id="cameras" class="custom-select" style="margin-left: 10px; border-radius: 5px;"></select>
+                                <select id="cameras" class="custom-select"
+                                    style="margin-left: 10px; border-radius: 5px; margin-top: 15px;"></select>
                             </div>
 
                             <div class="container2">
                                 <button id="mute" class="custom-button">
                                     <img src="img/mic_on.png" width="40" height="40"></button>
-
                                 <button id="camera" class="custom-button">
                                     <img src="img/cam_on.png" width="40" height="40"></button>
 
@@ -97,14 +96,16 @@
 
 
                             <div id="boombox" class="container3">
-                                <button id="boom" class="hidden-button" width="100px">
-                                    <img src="img/call.png" width="40" height="40" style="margin-right:-5px; margin-left:-5px; vertical-align:middle;">
-                                    <span style="margin-top:25px;font-size:13px;">회의 종료</span>
-                                    </button>
-                                <button id="endRoom" class="hidden-button" width="100px">
-                                    <img src="img/exit.png" width="40" height="40" style="margin-right:-10px; margin-left:-10px; vertical-align:middle;">
-                                    <span style="margin-top:25px;font-size:13px;">회의 나가기</span>
-                                    </button>
+                                <button id="boom" class="hidden-button"style="height: 43px; margin-top: 18px;">
+                                    <img src="img/call.png" width="40" height="40"
+                                        style="vertical-align:top; margin-top: -10px; margin-left: -20px;">
+                                    <span style="font-size:15px;margin-left: -10px;">회의 종료</span>
+                                </button>
+                                <button id="endRoom" class="hidden-button" style="height: 43px; width: 140px; margin-top: 18px;">
+                                    <img src="img/exit.png" width="40" height="40"
+                                        style="vertical-align:top; margin-top: -10px; margin-left: -20px;">
+                                    <span style="font-size:15px; margin-left: -10px; margin-top: -10px;">회의 나가기</span>
+                                </button>
                             </div>
                         </div>
                         <div id="roomName"></div>
@@ -114,110 +115,106 @@
         </div>
     </div>
 
-        <!-- Footer -->
-        <div id="footer-wrapper">
-            <footer id="footer" class="container">
-                <div class="row">
-                    <div class="col-3 col-6-medium col-12-small">
-                        <section class="widget links">
-                            <h3>Thanks for</h3>
-                            <ul class="style2">
-                                <li>
-                                    <p>Parent</p>
-                                </li>
-                                <li>
-                                    <p>Mol 13Class Professor</p>
-                                </li>
-                                <li>
-                                    <p>Bit Education Center</p>
-                                </li>
-                                <li>
-                                    <p>SM SW Office</p>
-                                </li>
-                            </ul>
-                        </section>
+    <!-- Footer -->
+    <div id="footer-wrapper">
+        <footer id="footer" class="container">
+            <div class="row">
+                <div class="col-3 col-6-medium col-12-small">
+                    <section class="widget links">
+                        <h3>Thanks for</h3>
+                        <ul class="style2">
+                            <li>
+                                <p>Parent</p>
+                            </li>
+                            <li>
+                                <p>Mol 13Class Professor</p>
+                            </li>
+                            <li>
+                                <p>Bit Education Center</p>
+                            </li>
+                            <li>
+                                <p>SM SW Office</p>
+                            </li>
+                        </ul>
+                    </section>
 
-                    </div>
-                    <div class="col-3 col-6-medium col-12-small">
+                </div>
+                <div class="col-3 col-6-medium col-12-small">
 
-                        <section class="widget links">
-                            <h3>Developer</h3>
-                            <ul class="style2">
-                                <li>
-                                    <p>Na HyeongJin</p>
-                                </li>
-                                <li>
-                                    <p>Lee GwangHui</p>
-                                </li>
-                                <li>
-                                    <p>WANG CHIANG LING</p>
-                                </li>
-                                <li>
-                                    <p>Jung KyeongHee</p>
-                                </li>
-                            </ul>
-                        </section>
+                    <section class="widget links">
+                        <h3>Developer</h3>
+                        <ul class="style2">
+                            <li>
+                                <p>Na HyeongJin</p>
+                            </li>
+                            <li>
+                                <p>WANG CHIANG LING</p>
+                            </li>
+                            <li>
+                                <p>Jung KyeongHee</p>
+                            </li>
+                        </ul>
+                    </section>
 
-                    </div>
-                    <div class="col-3 col-6-medium col-12-small">
+                </div>
+                <div class="col-3 col-6-medium col-12-small">
 
-                        <section class="widget links">
-                            <h3>INFO</h3>
-                            <ul class="style2">
-                                <li>
-                                    <h1>Address</h1>
-                                </li>
-                                <li>
-                                    <p>70 Sunmoon-ro 221, Tangjeong-myeon<br><br>
-                                        Asan-si, Chungcheongnam-do
-                                    </p>
-                                </li>
-                                <li>
-                                    <h1>tel</h1>
-                                </li>
-                                <li>
-                                    <p>(041) 530-2114</p>
-                                </li>
-                                <li>
-                                    <h1>Email</h1>
-                                </li>
-                                <li>
-                                    <p>gmovieoffice@gmail.com</p>
-                                </li>
-                            </ul>
-                        </section>
+                    <section class="widget links">
+                        <h3>INFO</h3>
+                        <ul class="style2">
+                            <li>
+                                <h1>Address</h1>
+                            </li>
+                            <li>
+                                <p>70 Sunmoon-ro 221, Tangjeong-myeon<br>
+                                    Asan-si, Chungcheongnam-do
+                                </p>
+                            </li>
+                            <li>
+                                <h1>tel</h1>
+                            </li>
+                            <li>
+                                <p>(041) 530-2114</p>
+                            </li>
+                            <li>
+                                <h1>Email</h1>
+                            </li>
+                            <li>
+                                <p>gmovieoffice@gmail.com</p>
+                            </li>
+                        </ul>
+                    </section>
 
-                    </div>
-                    <div class="col-3 col-6-medium col-12-small">
+                </div>
+                <div class="col-3 col-6-medium col-12-small">
 
-                        <!-- Contact -->
-                        <section class="widget contact last">
-                            <h3>Contact Us</h3>
-                            <ul>
-                                <li><a href="https://www.instagram.com/skgudwlsdlrj/?hl=ko"
-                                        class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
-                                <li><a href="https://github.com/nahollo" class="icon brands fa-brands fa-github"><span
-                                            class="label">Dribbble</span></a></li>
-                                <li><a href="https://na-hollo.tistory.com/"
-                                        class="icon brands fa-brands fa-blogger"><span
-                                            class="label">Pinterest</span></a></li>
-                            </ul>
-                        </section>
+                    <!-- Contact -->
+                    <section class="widget contact last">
+                        <h3>Contact Us</h3>
+                        <ul>
+                            <li><a href="https://www.instagram.com/skgudwlsdlrj/?hl=ko"
+                                    class="icon brands fa-instagram"><span class="label">Instagram</span></a></li>
+                            <li><a href="https://github.com/nahollo" class="icon brands fa-brands fa-github"><span
+                                        class="label">Dribbble</span></a></li>
+                            <li><a href="https://na-hollo.tistory.com/" class="icon brands fa-brands fa-blogger"><span
+                                        class="label">Pinterest</span></a></li>
+                        </ul>
+                    </section>
 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="copyright">
+                        <ul class="menu">
+                            <li>&copy; GMOVIE</li>
+                            <li>Design: nahollo </a></li>
+                        </ul>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div id="copyright">
-                            <ul class="menu">
-                                <li>&copy; GMOVIE</li>
-                                <li>Design: nahollo </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        </div>
+            </div>
+        </footer>
+    </div>
     <!-- </div> -->
 
     <script src="/socket.io/socket.io.js"></script>
@@ -263,8 +260,6 @@
             height: 80px;
             flex-direction: row;
             justify-content: space-between;
-            padding-top: 15px;
-            /* margin-right: 200px; */
         }
 
         #cameras {
@@ -274,6 +269,7 @@
         .container2 {
             margin-right: 35px;
             flex-direction: row;
+            display: flex;
         }
 
         .container3 {
@@ -321,6 +317,29 @@
 
         .hidden-button:hover {
             background-color: #E02828;
+        }
+
+        #mute,
+        #camera,
+        #startShareBtn,
+        #stopShareBtn {
+            background-color: transparent;
+            /* 배경 투명 */
+            border: none;
+            /* 테두리 제거 */
+            padding: 0;
+            /* 내부 여백 제거 */
+            cursor: pointer;
+            /* 커서 모양 변경 */
+        }
+
+        #mute:hover,
+        #camera:hover,
+        #startShareBtn:hover,
+        #stopShareBtn:hover {
+            /* 마우스 오버 효과 스타일 */
+            background-color: transparent;
+            /* 배경 투명 */
         }
     </style>
 
